@@ -94,88 +94,91 @@ VkShaderModule vkutil::compileToSPV(VkDevice device, const std::string& shaderFi
 void PipelineBuilder::clear() {
 	// clear all of the structs we need back to 0 with their correct stype
 
-	res.inputAssembly = { .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO };
+	auto* graphicsResourceConfig = res->getGraphicsConfig();
 
-	res.rasterizer = { .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO };
+	graphicsResourceConfig->inputAssembly = { .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO };
 
-	res.colorBlendAttachment = {};
+	graphicsResourceConfig->rasterizer = { .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO };
 
-	res.multisampling = { .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO };
+	graphicsResourceConfig->colorBlendAttachment = {};
 
-	res.pipelineLayout = {};
+	graphicsResourceConfig->multisampling = { .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO };
 
-	res.depthStencil = { .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO };
+	res->pipelineLayout = {};
 
-	res.renderInfo = { .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO };
+	graphicsResourceConfig->depthStencil = { .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO };
 
-	res.shaderStages.clear();
+	graphicsResourceConfig->renderInfo = { .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO };
+
+	graphicsResourceConfig->shaderStages.clear();
 }
 
 
 
-VkPipeline PipelineBuilder::build_pipeline(VkDevice device, RenderMode mode, const std::optional<VkRenderPass>& renderPass, PipelineManager::PipelineResources* storeRes) {
+VkPipeline PipelineBuilder::build_pipeline(VkDevice device, RenderMode mode, const std::optional<VkRenderPass>& renderPass, BasePipelineResource* storeRes) {
+
+	auto* graphicsResourceConfig = res->getGraphicsConfig();
+
+	graphicsResourceConfig->viewportStateInfo = {};
+	graphicsResourceConfig->viewportStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+	graphicsResourceConfig->viewportStateInfo.pNext = nullptr;
+
+	graphicsResourceConfig->viewportStateInfo.viewportCount = 1;
+	graphicsResourceConfig->viewportStateInfo.scissorCount = 1;
 
 
-	res.viewportStateInfo = {};
-	res.viewportStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-	res.viewportStateInfo.pNext = nullptr;
+	graphicsResourceConfig->colorBlendingInfo = {};
+	graphicsResourceConfig->colorBlendingInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+	graphicsResourceConfig->colorBlendingInfo.pNext = nullptr;
 
-	res.viewportStateInfo.viewportCount = 1;
-	res.viewportStateInfo.scissorCount = 1;
+	graphicsResourceConfig->colorBlendingInfo.logicOpEnable = VK_FALSE;
+	graphicsResourceConfig->colorBlendingInfo.logicOp = VK_LOGIC_OP_COPY;
+	graphicsResourceConfig->colorBlendingInfo.attachmentCount = 1;
+	graphicsResourceConfig->colorBlendingInfo.pAttachments = &graphicsResourceConfig->colorBlendAttachment;
 
-
-	res.colorBlendingInfo = {};
-	res.colorBlendingInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-	res.colorBlendingInfo.pNext = nullptr;
-
-	res.colorBlendingInfo.logicOpEnable = VK_FALSE;
-	res.colorBlendingInfo.logicOp = VK_LOGIC_OP_COPY;
-	res.colorBlendingInfo.attachmentCount = 1;
-	res.colorBlendingInfo.pAttachments = &res.colorBlendAttachment;
-
-	 res.vertexInputInfo = { .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
+	 graphicsResourceConfig->vertexInputInfo = { .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
 
 	VkGraphicsPipelineCreateInfo pipelineInfo = { .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO };
-	pipelineInfo.pNext = &res.renderInfo;
+	pipelineInfo.pNext = &graphicsResourceConfig->renderInfo;
 
-	pipelineInfo.stageCount = (uint32_t)res.shaderStages.size();
-	pipelineInfo.pStages = res.shaderStages.data();
-	pipelineInfo.pVertexInputState = &res.vertexInputInfo;
-	pipelineInfo.pInputAssemblyState = &res.inputAssembly;
-	pipelineInfo.pViewportState = &res.viewportStateInfo;
-	pipelineInfo.pRasterizationState = &res.rasterizer;
-	pipelineInfo.pMultisampleState = &res.multisampling;
-	pipelineInfo.pColorBlendState = &res.colorBlendingInfo;
-	pipelineInfo.pDepthStencilState = &res.depthStencil;
-	pipelineInfo.layout = res.pipelineLayout;
+	pipelineInfo.stageCount = (uint32_t)graphicsResourceConfig->shaderStages.size();
+	pipelineInfo.pStages = graphicsResourceConfig->shaderStages.data();
+	pipelineInfo.pVertexInputState = &graphicsResourceConfig->vertexInputInfo;
+	pipelineInfo.pInputAssemblyState = &graphicsResourceConfig->inputAssembly;
+	pipelineInfo.pViewportState = &graphicsResourceConfig->viewportStateInfo;
+	pipelineInfo.pRasterizationState = &graphicsResourceConfig->rasterizer;
+	pipelineInfo.pMultisampleState = &graphicsResourceConfig->multisampling;
+	pipelineInfo.pColorBlendState = &graphicsResourceConfig->colorBlendingInfo;
+	pipelineInfo.pDepthStencilState = &graphicsResourceConfig->depthStencil;
+	pipelineInfo.layout = res->pipelineLayout;
 
-	res.renderMode = mode;
+	graphicsResourceConfig->renderMode = mode;
 	
-	if (res.renderMode == RenderMode::Dynamic) {
+	if (graphicsResourceConfig->renderMode == RenderMode::Dynamic) {
 		pipelineInfo.renderPass = VK_NULL_HANDLE;
 		pipelineInfo.subpass = 0;
-		res.renderPass = VK_NULL_HANDLE;
+		graphicsResourceConfig->renderPass = VK_NULL_HANDLE;
 
 		//later implement a more dynamic way to attach formats if for example you need to use only color formats or depth formats using the dynamic render option
 		//it could be a std::optional so the pipline builder doesnt need so many parameters if not neccessary
 		//make sure this works correctly, reminder once you want to add dynamic rendering to sync with classic renderpass
 		//make sure you figure out how to pass depth information correctly from dynamic render pass -> to classic render pass
-		if (res.renderInfo.pColorAttachmentFormats || res.renderInfo.depthAttachmentFormat == VK_FORMAT_UNDEFINED) {
+		if (graphicsResourceConfig->renderInfo.pColorAttachmentFormats || graphicsResourceConfig->renderInfo.depthAttachmentFormat == VK_FORMAT_UNDEFINED) {
 			fmt::print("must set the attachments\n");
 		}
 		
 	} else {
 		pipelineInfo.renderPass = renderPass.value();
-		res.renderPass = renderPass.value();
+		graphicsResourceConfig->renderPass = renderPass.value();
 		pipelineInfo.subpass = 0;
 	}
 
-	res.dynamicStates = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
-	res.dynamicStateInfo = { .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO };
-	res.dynamicStateInfo.pDynamicStates = res.dynamicStates.data();
-	res.dynamicStateInfo.dynamicStateCount = res.dynamicStates.size();
+	graphicsResourceConfig->dynamicStates = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+	graphicsResourceConfig->dynamicStateInfo = { .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO };
+	graphicsResourceConfig->dynamicStateInfo.pDynamicStates = graphicsResourceConfig->dynamicStates.data();
+	graphicsResourceConfig->dynamicStateInfo.dynamicStateCount = graphicsResourceConfig->dynamicStates.size();
 
-	pipelineInfo.pDynamicState = &res.dynamicStateInfo;
+	pipelineInfo.pDynamicState = &graphicsResourceConfig->dynamicStateInfo;
 
 	VkPipeline newPipeline;
 	
@@ -185,143 +188,159 @@ VkPipeline PipelineBuilder::build_pipeline(VkDevice device, RenderMode mode, con
 
 	}
 	else {
-		if (storeRes) {
-			storeRes->shaderStages = res.shaderStages;  // compiled shader stages (VkPipelineShaderStageCreateInfo)
-			storeRes->vertexInputInfo = res.vertexInputInfo;
-			storeRes->inputAssembly = res.inputAssembly;
-			storeRes->viewportStateInfo = res.viewportStateInfo;
-			storeRes->rasterizer = res.rasterizer;
-			storeRes->multisampling = res.multisampling;
-			storeRes->colorBlendAttachment = res.colorBlendAttachment;
-			storeRes->colorBlendingInfo = res.colorBlendingInfo;
-			storeRes->colorBlendingInfo.pAttachments = &storeRes->colorBlendAttachment;
-			storeRes->depthStencil = res.depthStencil;
-			storeRes->dynamicStates = res.dynamicStates;
-			storeRes->dynamicStateInfo = res.dynamicStateInfo;
-			storeRes->dynamicStateInfo.pDynamicStates = storeRes->dynamicStates.data();
-			storeRes->pipelineLayout = res.pipelineLayout;
-			storeRes->renderInfo = res.renderInfo;
-			storeRes->renderPass = res.renderPass;
+		if (storeRes->type == PipelineType::Graphics) {
+			storeRes->getGraphicsConfig()->shaderStages = graphicsResourceConfig->shaderStages;  // compiled shader stages (VkPipelineShaderStageCreateInfo)
+			storeRes->getGraphicsConfig()->vertexInputInfo = graphicsResourceConfig->vertexInputInfo;
+			storeRes->getGraphicsConfig()->inputAssembly = graphicsResourceConfig->inputAssembly;
+			storeRes->getGraphicsConfig()->viewportStateInfo = graphicsResourceConfig->viewportStateInfo;
+			storeRes->getGraphicsConfig()->rasterizer = graphicsResourceConfig->rasterizer;
+			storeRes->getGraphicsConfig()->multisampling = graphicsResourceConfig->multisampling;
+			storeRes->getGraphicsConfig()->colorBlendAttachment = graphicsResourceConfig->colorBlendAttachment;
+			storeRes->getGraphicsConfig()->colorBlendingInfo = graphicsResourceConfig->colorBlendingInfo;
+			storeRes->getGraphicsConfig()->colorBlendingInfo.pAttachments = &storeRes->getGraphicsConfig()->colorBlendAttachment;
+			storeRes->getGraphicsConfig()->depthStencil = graphicsResourceConfig->depthStencil;
+			storeRes->getGraphicsConfig()->dynamicStates = graphicsResourceConfig->dynamicStates;
+			storeRes->getGraphicsConfig()->dynamicStateInfo = graphicsResourceConfig->dynamicStateInfo;
+			storeRes->getGraphicsConfig()->dynamicStateInfo.pDynamicStates = storeRes->getGraphicsConfig()->dynamicStates.data();
+			storeRes->pipelineLayout = res->pipelineLayout;
+			storeRes->getGraphicsConfig()->renderInfo = graphicsResourceConfig->renderInfo;
+			storeRes->getGraphicsConfig()->renderPass = graphicsResourceConfig->renderPass;
 		
-			storeRes->pipeline = res.pipeline;
+			storeRes->pipeline = res->pipeline;
 		}
 		return newPipeline;
 	}
 }
 
-void PipelineBuilder::set_shaders(VkShaderModule vertexShader, VkShaderModule fragmentShader)
-{
-	res.shaderStages.clear();
+void PipelineBuilder::set_shaders(VkShaderModule vertexShader, VkShaderModule fragmentShader) {
+	auto* graphicsResourceConfig = res->getGraphicsConfig();
 
-	res.shaderStages.push_back(
+	graphicsResourceConfig->shaderStages.clear();
+
+	graphicsResourceConfig->shaderStages.push_back(
 		vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_VERTEX_BIT, vertexShader));
 
-	res.shaderStages.push_back(
+	graphicsResourceConfig->shaderStages.push_back(
 		vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_FRAGMENT_BIT, fragmentShader));
 }
 
 
-void PipelineBuilder::set_input_topology(VkPrimitiveTopology topology)
-{
-	res.inputAssembly.topology = topology;
+void PipelineBuilder::set_input_topology(VkPrimitiveTopology topology) {
+	auto* graphicsResourceConfig = res->getGraphicsConfig();
+
+	graphicsResourceConfig->inputAssembly.topology = topology;
 	// we are not going to use primitive restart on the entire tutorial so leave
 	// it on false
-	res.inputAssembly.primitiveRestartEnable = VK_FALSE;
+	graphicsResourceConfig->inputAssembly.primitiveRestartEnable = VK_FALSE;
 }
 
-void PipelineBuilder::set_polygon_mode(VkPolygonMode mode)
-{
-	res.rasterizer.polygonMode = mode;
-	res.rasterizer.lineWidth = 1.f;
+void PipelineBuilder::set_polygon_mode(VkPolygonMode mode) {
+	auto* graphicsResourceConfig = res->getGraphicsConfig();
+
+	graphicsResourceConfig->rasterizer.polygonMode = mode;
+	graphicsResourceConfig->rasterizer.lineWidth = 1.f;
 }
 
-void PipelineBuilder::set_cull_mode(VkCullModeFlags cullMode, VkFrontFace frontFace)
-{
-	res.rasterizer.cullMode = cullMode;
-	res.rasterizer.frontFace = frontFace;
+void PipelineBuilder::set_cull_mode(VkCullModeFlags cullMode, VkFrontFace frontFace) {
+	auto* graphicsResourceConfig = res->getGraphicsConfig();
+
+	graphicsResourceConfig->rasterizer.cullMode = cullMode;
+	graphicsResourceConfig->rasterizer.frontFace = frontFace;
 }
 
-void PipelineBuilder::set_multisampling_none()
-{
-	res.multisampling.sampleShadingEnable = VK_FALSE;
+void PipelineBuilder::set_multisampling_none() {
+	auto* graphicsResourceConfig = res->getGraphicsConfig();
+
+	graphicsResourceConfig->multisampling.sampleShadingEnable = VK_FALSE;
 	// multisampling defaulted to no multisampling (1 sample per pixel)
-	res.multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-	res.multisampling.minSampleShading = 1.0f;
-	res.multisampling.pSampleMask = nullptr;
+	graphicsResourceConfig->multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+	graphicsResourceConfig->multisampling.minSampleShading = 1.0f;
+	graphicsResourceConfig->multisampling.pSampleMask = nullptr;
 	// no alpha to coverage either
-	res.multisampling.alphaToCoverageEnable = VK_FALSE;
-	res.multisampling.alphaToOneEnable = VK_FALSE;
+	graphicsResourceConfig->multisampling.alphaToCoverageEnable = VK_FALSE;
+	graphicsResourceConfig->multisampling.alphaToOneEnable = VK_FALSE;
 }
 
-void PipelineBuilder::disable_blending()
-{
+void PipelineBuilder::disable_blending() {
+	auto* graphicsResourceConfig = res->getGraphicsConfig();
+
 	// default write mask
-	res.colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	graphicsResourceConfig->colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 	// no blending
-	res.colorBlendAttachment.blendEnable = VK_FALSE;
+	graphicsResourceConfig->colorBlendAttachment.blendEnable = VK_FALSE;
 }
 
 void PipelineBuilder::set_color_attachment_format(VkFormat format)
 {
-	
-	res.colorAttachmentformat = format;
+	auto* graphicsResourceConfig = res->getGraphicsConfig();
+
+	graphicsResourceConfig->colorAttachmentformat = format;
 	// connect the format to the renderInfo  structure
-	res.renderInfo.colorAttachmentCount = 1;
-	res.renderInfo.pColorAttachmentFormats = &res.colorAttachmentformat;
+	graphicsResourceConfig->renderInfo.colorAttachmentCount = 1;
+	graphicsResourceConfig->renderInfo.pColorAttachmentFormats = &graphicsResourceConfig->colorAttachmentformat;
 }
 
 void PipelineBuilder::set_depth_format(VkFormat format)
 {
-	res.renderInfo.depthAttachmentFormat = format;
+	auto* graphicsResourceConfig = res->getGraphicsConfig();
+
+	graphicsResourceConfig->renderInfo.depthAttachmentFormat = format;
 }
 
 void PipelineBuilder::disable_depthtest()
 {
-	res.depthStencil.depthTestEnable = VK_FALSE;
-	res.depthStencil.depthWriteEnable = VK_FALSE;
-	res.depthStencil.depthCompareOp = VK_COMPARE_OP_NEVER;
-	res.depthStencil.depthBoundsTestEnable = VK_FALSE;
-	res.depthStencil.stencilTestEnable = VK_FALSE;
-	res.depthStencil.front = {};
-	res.depthStencil.back = {};
-	res.depthStencil.minDepthBounds = 0.f;
-	res.depthStencil.maxDepthBounds = 1.f;
+	auto* graphicsResourceConfig = res->getGraphicsConfig();
+
+	graphicsResourceConfig->depthStencil.depthTestEnable = VK_FALSE;
+	graphicsResourceConfig->depthStencil.depthWriteEnable = VK_FALSE;
+	graphicsResourceConfig->depthStencil.depthCompareOp = VK_COMPARE_OP_NEVER;
+	graphicsResourceConfig->depthStencil.depthBoundsTestEnable = VK_FALSE;
+	graphicsResourceConfig->depthStencil.stencilTestEnable = VK_FALSE;
+	graphicsResourceConfig->depthStencil.front = {};
+	graphicsResourceConfig->depthStencil.back = {};
+	graphicsResourceConfig->depthStencil.minDepthBounds = 0.f;
+	graphicsResourceConfig->depthStencil.maxDepthBounds = 1.f;
 }
 
 void PipelineBuilder::enable_depthtest(bool depthWriteEnable, VkCompareOp op) {
-	res.depthStencil.depthTestEnable = VK_TRUE;
-	res.depthStencil.depthWriteEnable = depthWriteEnable;
-	res.depthStencil.depthCompareOp = op;
-	res.depthStencil.depthBoundsTestEnable = VK_FALSE;
-	res.depthStencil.stencilTestEnable = VK_FALSE;
-	res.depthStencil.front = {};
-	res.depthStencil.back = {};
-	res.depthStencil.minDepthBounds = 0.f;
-	res.depthStencil.maxDepthBounds = 1.f;
+	auto* graphicsResourceConfig = res->getGraphicsConfig();
+
+	graphicsResourceConfig->depthStencil.depthTestEnable = VK_TRUE;
+	graphicsResourceConfig->depthStencil.depthWriteEnable = depthWriteEnable;
+	graphicsResourceConfig->depthStencil.depthCompareOp = op;
+	graphicsResourceConfig->depthStencil.depthBoundsTestEnable = VK_FALSE;
+	graphicsResourceConfig->depthStencil.stencilTestEnable = VK_FALSE;
+	graphicsResourceConfig->depthStencil.front = {};
+	graphicsResourceConfig->depthStencil.back = {};
+	graphicsResourceConfig->depthStencil.minDepthBounds = 0.f;
+	graphicsResourceConfig->depthStencil.maxDepthBounds = 1.f;
 	
 }
 
 void PipelineBuilder::enable_blending_additive(){
- 
-	res.colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-	res.colorBlendAttachment.blendEnable = VK_TRUE;
-	res.colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-	res.colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE;
-	res.colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-	res.colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-	res.colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-	res.colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+	auto* graphicsResourceConfig = res->getGraphicsConfig();
+
+	graphicsResourceConfig->colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	graphicsResourceConfig->colorBlendAttachment.blendEnable = VK_TRUE;
+	graphicsResourceConfig->colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+	graphicsResourceConfig->colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE;
+	graphicsResourceConfig->colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+	graphicsResourceConfig->colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+	graphicsResourceConfig->colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+	graphicsResourceConfig->colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
 }
 
 void PipelineBuilder::enable_blending_alphablend() {
-	res.colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-	res.colorBlendAttachment.blendEnable = VK_TRUE;
-	res.colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-	res.colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-	res.colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-	res.colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-	res.colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-	res.colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+	auto* graphicsResourceConfig = res->getGraphicsConfig();
+
+	graphicsResourceConfig->colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	graphicsResourceConfig->colorBlendAttachment.blendEnable = VK_TRUE;
+	graphicsResourceConfig->colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+	graphicsResourceConfig->colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+	graphicsResourceConfig->colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+	graphicsResourceConfig->colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+	graphicsResourceConfig->colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+	graphicsResourceConfig->colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
 }
 
 

@@ -57,75 +57,146 @@ struct Shader {
 };
 
 
+struct GraphicsPipelineConfig {
+	VkPipelineRenderingCreateInfo renderInfo;
+
+	VkPipelineLayoutCreateInfo layoutInfo;
+	VkPushConstantRange pushConstantRange;
+
+	std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+	VkPipelineInputAssemblyStateCreateInfo inputAssembly;
+	VkPipelineRasterizationStateCreateInfo rasterizer;
+	VkPipelineMultisampleStateCreateInfo multisampling;
+	VkPipelineDepthStencilStateCreateInfo depthStencil;
+	VkPipelineColorBlendAttachmentState colorBlendAttachment;
+	VkFormat colorAttachmentformat;
+
+
+	VkPipelineDynamicStateCreateInfo dynamicStateInfo;
+	std::vector<VkDynamicState> dynamicStates;
+
+	VkPipelineViewportStateCreateInfo viewportStateInfo;
+	VkPipelineVertexInputStateCreateInfo vertexInputInfo;
+	VkPipelineColorBlendStateCreateInfo colorBlendingInfo;
+
+	VkRenderPass renderPass;
+	RenderMode renderMode;
+
+};
+
+struct ComputePipelineConfig {
+
+	VkPipelineLayout computePipelineLayout;
+	VkPipelineLayoutCreateInfo computePipelineLayoutInfo;
+
+	VkPushConstantRange pushConstant;
+
+	VkPipelineShaderStageCreateInfo shaderStageInfo;
+	VkComputePipelineCreateInfo computePipelineCreateInfo;
+
+	ComputeEffect computeEffect;
+	ComputeEffect otherComputeEffect;
+
+};
+
+enum PipelineType {
+	Graphics,
+	Compute,
+};
+
+
+
+struct BasePipelineResource {
+
+public: 
+
+	virtual ~BasePipelineResource() = default;
+
+	virtual GraphicsPipelineConfig* getGraphicsConfig() { return nullptr; }
+	virtual ComputePipelineConfig* getComputeConfig() { return nullptr; }
+
+
+	virtual VkPipeline rebuild(VkDevice device, BasePipelineResource& res) = 0;
+
+	VkPipeline pipeline;
+	VkPipelineLayout pipelineLayout;
+	Shader shader;
+	LayoutID pipelineLayoutID;
+	PipelineID pipelineID;
+	PipelineType type;
+
+};
+
+
+
+struct GraphicsPipelineResource : BasePipelineResource {
+
+	GraphicsPipelineResource() = default;
+
+	GraphicsPipelineResource(std::vector<BasePipelineResource*>& deletionQueue) {
+		deletionQueue.push_back(this);
+	}
+
+	virtual ~GraphicsPipelineResource() override {}
+
+	GraphicsPipelineConfig* getGraphicsConfig() override { return &config; }
+	VkPipeline rebuild(VkDevice device, BasePipelineResource& res) override;
+
+	GraphicsPipelineConfig config;
+};
+
+
+struct ComputePipelineResource : BasePipelineResource {
+
+	ComputePipelineResource() = default;
+
+	ComputePipelineResource(std::vector<BasePipelineResource*>& deletionQueue) {
+		deletionQueue.push_back(this);
+	}
+
+	virtual ~ComputePipelineResource() override {}
+
+	ComputePipelineConfig* getComputeConfig() override { return &config; }
+	VkPipeline rebuild(VkDevice device, BasePipelineResource& res) override;
+
+	ComputePipelineConfig config;
+};
+
+
+
+
 
 struct PipelineManager {
 
+public: 
+	friend class Renderer;
 
-	struct PipelineResources {
-		VkPipeline pipeline;
-		VkPipelineLayout pipelineLayout;
-		Shader shader;
-		VkPipelineRenderingCreateInfo renderInfo;
-
-		VkPipelineLayoutCreateInfo layoutInfo;
-		VkPushConstantRange pushConstantRange;
-
-
-
-		std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
-		VkPipelineInputAssemblyStateCreateInfo inputAssembly;
-		VkPipelineRasterizationStateCreateInfo rasterizer;
-		VkPipelineMultisampleStateCreateInfo multisampling;
-		VkPipelineDepthStencilStateCreateInfo depthStencil;
-		VkPipelineColorBlendAttachmentState colorBlendAttachment;
-		VkFormat colorAttachmentformat;
-
-
-		VkPipelineDynamicStateCreateInfo dynamicStateInfo;
-		std::vector<VkDynamicState> dynamicStates;
-		
-		VkPipelineViewportStateCreateInfo viewportStateInfo;
-		VkPipelineVertexInputStateCreateInfo vertexInputInfo;
-		VkPipelineColorBlendStateCreateInfo colorBlendingInfo;
-		
-		VkRenderPass renderPass;
-		RenderMode renderMode;
-
-		LayoutID pipelineLayoutID;
-		PipelineID pipelineID;
-	};
-
-	inline static VkPipelineCache pipelineCache = VK_NULL_HANDLE;
-	
-	inline static LayoutID nextLayoutID = 1;
-	inline static PipelineID nextPipelineID = 1;
-	
-
-	std::unordered_map<LayoutID, VkPipelineLayout> layoutLookup;
-	std::unordered_map<PipelineID, VkPipeline> pipelineLookup;
-	inline static std::unordered_map<std::string, std::vector<PipelineResources*>> shaderMap;
 
 	static void init_PipelineCache();
-
-	void init_pipeline_resource(PipelineResources& res);
-
-	//temp function want to move to full init_pipeline_resource function 
-	void store_pipeline(PipelineID pID, LayoutID lID, VkPipeline pipeline, VkPipelineLayout layout);
-
-	void link_shader(PipelineResources& resource);
-
-	VkPipelineLayout get_layout(LayoutID id) const;
-	VkPipeline get_pipeline(PipelineID id) const;
-
-	static auto& get_shaderMap()  { return shaderMap; }
+	void static destroyPipelineCache();
 
 	inline static LayoutID createLayoutID() { return nextLayoutID++; }
 	inline static PipelineID createPipelineID() { return nextPipelineID++; }
 
+	inline static auto& get_shaderMap() { return shaderMap; }
 
-	void static destroyPipelineCache();
 
-	friend class Renderer;
+	void init_pipeline_resource(BasePipelineResource& res);
+	//temp function want to move to full init_pipeline_resource function 
+	void store_pipeline(PipelineID pID, LayoutID lID, VkPipeline pipeline, VkPipelineLayout layout);
+	void link_shader(BasePipelineResource& resource);
+	VkPipelineLayout get_layout(LayoutID id) const;
+	VkPipeline get_pipeline(PipelineID id) const;
+
+	inline static VkPipelineCache pipelineCache = VK_NULL_HANDLE;
+	inline static LayoutID nextLayoutID = 1;
+	inline static PipelineID nextPipelineID = 1;
+	inline static std::unordered_map<std::string, std::vector<BasePipelineResource*>> shaderMap;
+
+
+
+	std::unordered_map<LayoutID, VkPipelineLayout> layoutLookup;
+	std::unordered_map<PipelineID, VkPipeline> pipelineLookup;
 };
 
 
@@ -151,11 +222,10 @@ public:
 	VkSampler defaultSamplerLinear;
 	VkSampler defaultSamplerNearest;
 
-
-	PipelineManager::PipelineResources meshPipeline;
-
-
-
+	std::vector<BasePipelineResource*> resourceInstanceDeletion;
+	BasePipelineResource* meshPipeline = new GraphicsPipelineResource(resourceInstanceDeletion);
+	
+	BasePipelineResource* computePipeline = new ComputePipelineResource(resourceInstanceDeletion);
 
 	LayoutID gradientPipelineLayoutID;
 	PipelineID gradientPipelineID;
@@ -169,8 +239,6 @@ public:
 	void init_framebuffers();
 	void init_descriptors();
 	
-	VkPipeline rebuildPipelines(VkDevice device, PipelineManager::PipelineResources& res);
-
 	void HotloadShader();
 
 private:

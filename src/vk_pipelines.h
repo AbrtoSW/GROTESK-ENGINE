@@ -19,13 +19,17 @@ extern TBuiltInResource DefaultTBuiltInResource;
 class PipelineBuilder {
 public:
 
-	PipelineManager::PipelineResources res;
+	
+	std::unique_ptr<BasePipelineResource> res = std::make_unique<GraphicsPipelineResource>();
+
 
 	PipelineBuilder() { clear(); }
 
+	
 	void clear();
 
-	VkPipeline build_pipeline(VkDevice device, RenderMode mode, const std::optional<VkRenderPass>& renderPass = std::nullopt, PipelineManager::PipelineResources* storeRes = nullptr);
+
+	VkPipeline build_pipeline(VkDevice device, RenderMode mode, const std::optional<VkRenderPass>& renderPass = std::nullopt, BasePipelineResource* storeRes = nullptr);
 
 	void set_shaders(VkShaderModule vertexShader, VkShaderModule fragmentShader);
 	void set_polygon_mode(VkPolygonMode mode);

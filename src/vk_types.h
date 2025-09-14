@@ -23,10 +23,10 @@
 
 
 
+struct BasePipelineResource;
 
 class VulkanEngine;
 class DescriptorAllocatorGrowable;
-struct StorePipeline;
 
 #define VK_CHECK(x)                                                     \
     do {                                                                \
@@ -238,6 +238,7 @@ public:
 			}
 		}
 	}
+
 
 
 	template <typename T>
