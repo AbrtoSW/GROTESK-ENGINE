@@ -7,90 +7,6 @@
 #include "vk_renderer.h"
 
 
-bool vkutil::load_shader_module(const char* filePath,VkDevice device, VkShaderModule* outShaderModule) {
-	// open the file. With cursor at the end
-	std::ifstream file(filePath, std::ios::ate | std::ios::binary);
-
-	if (!file.is_open()) {
-		return false;
-	}
-
-	// find what the size of the file is by looking up the location of the cursor
-	// because the cursor is at the end, it gives the size directly in bytes
-	size_t fileSize = (size_t)file.tellg();
-
-	// spirv expects the buffer to be on uint32, so make sure to reserve a int
-	// vector big enough for the entire file
-	std::vector<uint32_t> buffer(fileSize / sizeof(uint32_t));
-
-	// put file cursor at beginning
-	file.seekg(0);
-
-	// load the entire file into the buffer
-	file.read((char*)buffer.data(), fileSize);
-
-	// now that the file is loaded into the buffer, we can close it
-	file.close();
-
-	// create a new shader module, using the buffer we loaded
-	VkShaderModuleCreateInfo createInfo = {};
-	createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-	createInfo.pNext = nullptr;
-
-	// codeSize has to be in bytes, so multply the ints in the buffer by size of
-	// int to know the real size of the buffer
-	createInfo.codeSize = buffer.size() * sizeof(uint32_t);
-	createInfo.pCode = buffer.data();
-
-	// check that the creation goes well.
-	VkShaderModule shaderModule;
-	if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
-		return false;
-	}
-	*outShaderModule = shaderModule;
-
-	return true;
-}
-
-
-VkShaderModule vkutil::compileToSPV(VkDevice device, const std::string& shaderFile, EShLanguage stage) {
-
-	std::string source = readFile(shaderFile);
-	const char* sourcePtr = source.c_str();
-
-	//apparently initliaze process should be at startup of vulkan
-	
-	EShMessages messages = (EShMessages)(EShMsgDefault | EShMsgVulkanRules | EShMsgSpvRules);
-
-	glslang::TShader shader(stage);
-	shader.setStrings(&sourcePtr, 1);
-	if (!shader.parse(&DefaultTBuiltInResource, 110, false, messages)) {
-		fmt::print("Shader compile error: {}\n", shader.getInfoLog());
-		throw std::runtime_error(shader.getInfoLog());
-	}
-
-	glslang::TProgram program;
-	program.addShader(&shader);
-	if (!program.link(messages)) {
-		throw std::runtime_error(program.getInfoLog());
-	}
-
-	std::vector<uint32_t> spirv;
-	GlslangToSpv(*program.getIntermediate(stage), spirv);
-	
-	VkShaderModuleCreateInfo createInfo{};
-	createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-	createInfo.codeSize = spirv.size() * sizeof(uint32_t);
-	createInfo.pCode = spirv.data();
-
-	VkShaderModule shaderModule;
-	if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to create shader module");
-	}
-
-	return shaderModule;
-}
-
 void PipelineBuilder::clear() {
 	// clear all of the structs we need back to 0 with their correct stype
 
@@ -115,7 +31,7 @@ void PipelineBuilder::clear() {
 
 
 
-VkPipeline PipelineBuilder::build_pipeline(VkDevice device, RenderMode mode, const std::optional<VkRenderPass>& renderPass, BasePipelineResource* storeRes) {
+VkPipeline PipelineBuilder::build_pipeline(VkDevice device, RenderMode mode, const std::optional<VkRenderPass>& renderPass, PipelineResource* storeRes) {
 
 	auto* graphicsResourceConfig = res->getGraphicsConfig();
 

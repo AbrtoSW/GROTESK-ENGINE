@@ -137,7 +137,7 @@
     <ClCompile Include="src\imgui\imgui_tables.cpp" />
     <ClCompile Include="src\imgui\imgui_widgets.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\util.cpp" />
+    <ClCompile Include="src\vk_util.cpp" />
     <ClCompile Include="src\vk_descriptors.cpp" />
     <ClCompile Include="src\vk_engine.cpp" />
     <ClCompile Include="src\vk_images.cpp" />
@@ -148,7 +148,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\camera.h" />
-    <ClInclude Include="src\util.h" />
+    <ClInclude Include="src\vk_util.h" />
     <ClInclude Include="src\vk_descriptors.h" />
     <ClInclude Include="src\vk_engine.h" />
     <ClInclude Include="src\vk_images.h" />

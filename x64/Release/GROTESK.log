@@ -1,11 +1,11 @@
 ﻿  main.cpp
-C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(33,8): warning C4099: 'DescriptorAllocatorGrowable': type name first seen using 'class' now seen using 'struct'
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_util.h(27,7): warning C4099: 'DescriptorAllocatorGrowable': type name first seen using 'struct' now seen using 'class'
   (compiling source file 'src/main.cpp')
       C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(33,8):
       see declaration of 'DescriptorAllocatorGrowable'
   
   vk_descriptors.cpp
-C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(33,8): warning C4099: 'DescriptorAllocatorGrowable': type name first seen using 'class' now seen using 'struct'
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_util.h(27,7): warning C4099: 'DescriptorAllocatorGrowable': type name first seen using 'struct' now seen using 'class'
   (compiling source file 'src/vk_descriptors.cpp')
       C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(33,8):
       see declaration of 'DescriptorAllocatorGrowable'
@@ -13,21 +13,21 @@ C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(33,8): warnin
 C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.cpp(104,29): warning C4244: '=': conversion from 'double' to 'uint32_t', possible loss of data
 C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.cpp(150,24): warning C4244: '=': conversion from 'double' to 'uint32_t', possible loss of data
   vk_engine.cpp
-C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(33,8): warning C4099: 'DescriptorAllocatorGrowable': type name first seen using 'class' now seen using 'struct'
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_util.h(27,7): warning C4099: 'DescriptorAllocatorGrowable': type name first seen using 'struct' now seen using 'class'
   (compiling source file 'src/vk_engine.cpp')
       C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(33,8):
       see declaration of 'DescriptorAllocatorGrowable'
   
 C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_engine.cpp(102,111): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_engine.cpp(366,44): warning C4267: '=': conversion from 'size_t' to 'uint32_t', possible loss of data
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_engine.cpp(368,44): warning C4267: '=': conversion from 'size_t' to 'uint32_t', possible loss of data
   vk_images.cpp
-C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(33,8): warning C4099: 'DescriptorAllocatorGrowable': type name first seen using 'class' now seen using 'struct'
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_util.h(27,7): warning C4099: 'DescriptorAllocatorGrowable': type name first seen using 'struct' now seen using 'class'
   (compiling source file 'src/vk_images.cpp')
       C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(33,8):
       see declaration of 'DescriptorAllocatorGrowable'
   
   vk_loader.cpp
-C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(33,8): warning C4099: 'DescriptorAllocatorGrowable': type name first seen using 'class' now seen using 'struct'
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_util.h(27,7): warning C4099: 'DescriptorAllocatorGrowable': type name first seen using 'struct' now seen using 'class'
   (compiling source file 'src/vk_loader.cpp')
       C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(33,8):
       see declaration of 'DescriptorAllocatorGrowable'
@@ -43,23 +43,23 @@ C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(33,8): warnin
       C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(33,8):
       see declaration of 'DescriptorAllocatorGrowable'
   
-C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_pipelines.cpp(179,105): warning C4267: '=': conversion from 'size_t' to 'uint32_t', possible loss of data
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_pipelines.cpp(95,105): warning C4267: '=': conversion from 'size_t' to 'uint32_t', possible loss of data
   vk_renderer.cpp
-C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(33,8): warning C4099: 'DescriptorAllocatorGrowable': type name first seen using 'class' now seen using 'struct'
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_util.h(27,7): warning C4099: 'DescriptorAllocatorGrowable': type name first seen using 'struct' now seen using 'class'
   (compiling source file 'src/vk_renderer.cpp')
       C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(33,8):
       see declaration of 'DescriptorAllocatorGrowable'
   
-C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_renderer.cpp(624,29): warning C4244: '=': conversion from 'uint32_t' to 'float', possible loss of data
-C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_renderer.cpp(625,30): warning C4244: '=': conversion from 'uint32_t' to 'float', possible loss of data
-C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_renderer.cpp(634,33): warning C4244: '=': conversion from 'float' to 'uint32_t', possible loss of data
-C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_renderer.cpp(635,34): warning C4244: '=': conversion from 'float' to 'uint32_t', possible loss of data
-C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_renderer.cpp(724,66): warning C4244: 'argument': conversion from 'double' to 'uint32_t', possible loss of data
-C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_renderer.cpp(724,30): warning C4244: 'argument': conversion from 'double' to 'uint32_t', possible loss of data
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_renderer.cpp(553,29): warning C4244: '=': conversion from 'uint32_t' to 'float', possible loss of data
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_renderer.cpp(554,30): warning C4244: '=': conversion from 'uint32_t' to 'float', possible loss of data
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_renderer.cpp(563,33): warning C4244: '=': conversion from 'float' to 'uint32_t', possible loss of data
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_renderer.cpp(564,34): warning C4244: '=': conversion from 'float' to 'uint32_t', possible loss of data
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_renderer.cpp(643,66): warning C4244: 'argument': conversion from 'double' to 'uint32_t', possible loss of data
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_renderer.cpp(643,30): warning C4244: 'argument': conversion from 'double' to 'uint32_t', possible loss of data
+  vk_util.cpp
   Generating code
-  31 of 6872 functions ( 0.5%) were compiled, the rest were copied from previous compilation.
-    5 functions were new in current compilation
-    41 functions had inline decision re-evaluated but remain unchanged
+  Previous IPDB and IOBJ mismatch, fall back to full compilation.
+  All 6890 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
   Finished generating code
 glslang.lib(ShaderLang.obj) : warning LNK4099: PDB 'glslang.pdb' was not found with 'glslang.lib(ShaderLang.obj)' or at 'C:\Users\Alberto\source\repos\GROTESK\x64\Release\glslang.pdb'; linking object as if no debug info
 glslang.lib(GlslangToSpv.obj) : warning LNK4099: PDB 'glslang.pdb' was not found with 'glslang.lib(GlslangToSpv.obj)' or at 'C:\Users\Alberto\source\repos\GROTESK\x64\Release\glslang.pdb'; linking object as if no debug info

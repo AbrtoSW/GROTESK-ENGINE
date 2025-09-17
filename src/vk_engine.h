@@ -3,6 +3,7 @@
 #include "vk_descriptors.h"
 #include "vk_renderer.h"
 #include "vkbootstrap/VkBootstrap.h"
+#include "vk_util.h"
 
 
 
@@ -37,9 +38,12 @@ public:
 	bool resize_requested = false;
 	bool hotload_requested = false;
 
-	//frame handles
+	//frame handles header
+
 	FrameData frames[FRAME_OVERLAP];
 	FrameData& get_current_frame() { return frames[frameNumber % FRAME_OVERLAP]; };
+
+	
 
 	//queue
 	VkQueue graphicsQueue;

@@ -243,7 +243,7 @@ void VulkanEngine::init_vulkan() {
 	allocatorInfo.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
 	vmaCreateAllocator(&allocatorInfo, &vmaAllocator);
 	
-
+	
 }
 
 void VulkanEngine::cleanup() {
@@ -265,8 +265,10 @@ void VulkanEngine::cleanup() {
 
 		vkDestroySemaphore(device, frames[i].swapchainSemaphore, vkAllocator);
 			
-		
+
+
 		frames[i].deletionQueue.flushFrameResources(vmaAllocator);
+		
 		frames[i].frameDescriptors.reset();
 	}
 
@@ -422,6 +424,7 @@ void VulkanEngine::create_offscreen_resources() {
 	VK_CHECK(vkCreateImageView(device, &dview_info, nullptr, &depthImage.imageView));
 
 
+	
 
 	mainDeletionQueue.push_offscreen_image(drawImage);
 	mainDeletionQueue.push_offscreen_image(depthImage);

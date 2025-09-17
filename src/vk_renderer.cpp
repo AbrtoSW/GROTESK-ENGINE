@@ -34,7 +34,6 @@ void Renderer::init_renderer() {
 
 void Renderer::init_pipelines() {
 	init_backgound_pipelines();
-	//init_triangle_pipeline();
 	init_mesh_pipeline();
 }
 
@@ -80,7 +79,6 @@ void Renderer::render_frame() {
 	vkutil::transition_image(cmd, engine.drawImage.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
 
-	//init_dynamic_rendering(cmd);
 
 	init_draw_image_renderpass(cmd);
 
@@ -88,7 +86,6 @@ void Renderer::render_frame() {
 	vkutil::copy_image_to_image(cmd, engine.drawImage.image, engine.swapchainImages[swapchainImageIndex], drawExtent, engine.swapchainExtent);
 	vkutil::transition_image(cmd, engine.swapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
-	//init_dynamicRendering(cmd, swapchainImageViews[swapchainImageIndex]);
 
 	init_swapchain_renderpass(cmd, swapchainImageIndex);
 
@@ -127,9 +124,6 @@ void Renderer::render_frame() {
 
 void Renderer::init_renderer_cleanup() {
 
-	for (auto* ptr : resourceInstanceDeletion) {
-		delete ptr;
-	}
 	// this could be a bad hack because i want it to be in the main deletion queue but im destroying the pipelinecache here, 
 	// i should rethink how i go about creating the pipelinecache but remember
 	// that static allows for the struct to own the cache so it might be better to just keep it static and fix the vk_types.h
@@ -292,12 +286,12 @@ void Renderer::init_backgound_pipelines() {
 	VK_CHECK(vkCreatePipelineLayout(engine.device, &computeLayout, nullptr, &gradientPipelineLayout));
 
 	VkShaderModule gradientComputeShader;
-	if (!vkutil::load_shader_module("C:/Users/Alberto/source/repos/GROTESK/GROTESK/res/shaders/gradient_color.comp.spv", engine.device, &gradientComputeShader)) {
+	if (!shaderUtil::load_shader_module("C:/Users/Alberto/source/repos/GROTESK/GROTESK/res/shaders/gradient_color.comp.spv", engine.device, &gradientComputeShader)) {
 		fmt::print("compute shader did not load \n");
 	}
 
 	VkShaderModule skyComputeShader;
-	if (!vkutil::load_shader_module("C:/Users/Alberto/source/repos/GROTESK/GROTESK/res/shaders/sky.comp.spv", engine.device, &skyComputeShader)) {
+	if (!shaderUtil::load_shader_module("C:/Users/Alberto/source/repos/GROTESK/GROTESK/res/shaders/sky.comp.spv", engine.device, &skyComputeShader)) {
 		fmt::print("compute shader did not load \n");
 	}
 
@@ -348,88 +342,25 @@ void Renderer::init_backgound_pipelines() {
 
 }
 
-//void Renderer::init_triangle_pipeline() {
-//
-//	VkShaderModule triangleVertexShader;
-//	if (!vkutil::load_shader_module("C:/Users/Alberto/source/repos/GROTESK/GROTESK/res/shaders/colored_triangle.vert.spv", engine.device, &triangleVertexShader)) {
-//		fmt::print("triangle vert shader did not load \n");
-//	}
-//	else {
-//		fmt::print("triangle vert shader baked \n");
-//	}
-//
-//	VkShaderModule triangleFragmentShader;
-//	if (!vkutil::load_shader_module("C:/Users/Alberto/source/repos/GROTESK/GROTESK/res/shaders/colored_triangle.frag.spv", engine.device, &triangleFragmentShader)) {
-//		fmt::print("triangle frag shader did not load \n");
-//	}
-//	else {
-//		fmt::print("triangle frag shader baked \n");
-//	}
-//
-//	VkPipelineLayoutCreateInfo pipeline_layout_info = vkinit::pipeline_layout_create_info();
-//
-//	VkPipeline trianglePipeline;
-//	VkPipelineLayout trianglePipelineLayout;
-//	
-//	VK_CHECK(vkCreatePipelineLayout(engine.device, &pipeline_layout_info, nullptr, &trianglePipelineLayout));
-//
-//	
-//
-//	PipelineBuilder pipelineBuilder;
-//
-//	//use the triangle layout we created
-//	pipelineBuilder.pipelineLayout = trianglePipelineLayout;
-//	//connecting the vertex and pixel shaders to the pipeline
-//	pipelineBuilder.set_shaders(triangleVertexShader, triangleFragmentShader);
-//	//it will draw triangles
-//	pipelineBuilder.set_input_topology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-//	//filled triangles
-//	pipelineBuilder.set_polygon_mode(VK_POLYGON_MODE_FILL);
-//	//no backface culling
-//	pipelineBuilder.set_cull_mode(VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE);
-//	//no multisampling
-//	pipelineBuilder.set_multisampling_none();
-//	//no blending
-//	pipelineBuilder.disable_blending();
-//	//no depth testing
-//	pipelineBuilder.disable_depthtest();
-//
-//	//connect the image format we will draw into, from draw image
-//	//pipelineBuilder.set_color_attachment_format(engine.drawImage.imageFormat);
-//	//pipelineBuilder.set_depth_format(VK_FORMAT_UNDEFINED);
-//
-//	//finally build the pipeline
-//	trianglePipeline = pipelineBuilder.build_pipeline(engine.device, RenderMode::Classic, drawImageRenderPass);
-//	//trianglePipeline = pipelineBuilder.build_pipeline(engine.device, RenderMode::Dynamic);
-//	
-//	storePipeline.add_pipeline("trianglePipeline", trianglePipeline, trianglePipelineLayout);
-//
-//
-//	//clean structures
-//	vkDestroyShaderModule(engine.device, triangleFragmentShader, engine.vkAllocator);
-//	vkDestroyShaderModule(engine.device, triangleVertexShader, engine.vkAllocator);
-//
-//}
 
 void Renderer::init_mesh_pipeline() {
 
-	meshPipeline->shader.vertexShader.file = "C:/Users/Alberto/source/repos/GROTESK/GROTESK/res/shaders/colored_triangle_mesh_test.vert";
-	meshPipeline->shader.fragmentShader.file = "C:/Users/Alberto/source/repos/GROTESK/GROTESK/res/shaders/tex_image_test.frag";
+	meshPipeline.shader.vertexShader.file = "C:/Users/Alberto/source/repos/GROTESK/GROTESK/res/shaders/colored_triangle_mesh_test.vert";
+	meshPipeline.shader.fragmentShader.file = "C:/Users/Alberto/source/repos/GROTESK/GROTESK/res/shaders/tex_image_test.frag";
 
-	meshPipeline->shader.vertexShader.lastModified = getFileTimeStamp(meshPipeline->shader.vertexShader.file);
-	meshPipeline->shader.fragmentShader.lastModified = getFileTimeStamp(meshPipeline->shader.fragmentShader.file);
+	meshPipeline.shader.vertexShader.lastModified = getFileTimeStamp(meshPipeline.shader.vertexShader.file);
+	meshPipeline.shader.fragmentShader.lastModified = getFileTimeStamp(meshPipeline.shader.fragmentShader.file);
 
-	meshPipeline->shader.vertexShader.stage = VK_SHADER_STAGE_VERTEX_BIT;
-	meshPipeline->shader.fragmentShader.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+	meshPipeline.shader.vertexShader.stage = VK_SHADER_STAGE_VERTEX_BIT;
+	meshPipeline.shader.fragmentShader.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
 
 
-	VkShaderModule vertexShader = vkutil::compileToSPV(engine.device, meshPipeline->shader.vertexShader.file, EShLangVertex);
-	VkShaderModule fragmentShader = vkutil::compileToSPV(engine.device, meshPipeline->shader.fragmentShader.file, EShLangFragment);
+	VkShaderModule vertexShader = shaderUtil::compileToSPV(engine.device, meshPipeline.shader.vertexShader.file, EShLangVertex);
+	VkShaderModule fragmentShader = shaderUtil::compileToSPV(engine.device, meshPipeline.shader.fragmentShader.file, EShLangFragment);
 
-	managePipeline.link_shader(*meshPipeline);
-	
-	auto* meshPipelineConfig = meshPipeline->getGraphicsConfig();
-	
+
+	auto* meshPipelineConfig = meshPipeline.getGraphicsConfig();
+
 	meshPipelineConfig->pushConstantRange.offset = 0;
 	meshPipelineConfig->pushConstantRange.size = sizeof(GPUDrawPushConstants);
 	meshPipelineConfig->pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
@@ -439,11 +370,11 @@ void Renderer::init_mesh_pipeline() {
 	meshPipelineConfig->layoutInfo.pSetLayouts = &singleImageDescriptorLayout;
 	meshPipelineConfig->layoutInfo.setLayoutCount = 1;
 
-	VK_CHECK(vkCreatePipelineLayout(engine.device, &meshPipelineConfig->layoutInfo, nullptr, &meshPipeline->pipelineLayout));
+	VK_CHECK(vkCreatePipelineLayout(engine.device, &meshPipelineConfig->layoutInfo, nullptr, &meshPipeline.pipelineLayout));
 
 	PipelineBuilder pipelineBuilder;
 	//use the triangle layout we created
-	pipelineBuilder.res->pipelineLayout = meshPipeline->pipelineLayout;
+	pipelineBuilder.res->pipelineLayout = meshPipeline.pipelineLayout;
 	//connecting the vertex and pixel shaders to the pipeline
 	pipelineBuilder.set_shaders(vertexShader, fragmentShader);
 	//it will draw triangles
@@ -465,20 +396,18 @@ void Renderer::init_mesh_pipeline() {
 	//pipelineBuilder.set_depth_format(engine.depthImage.imageFormat);
 
 	//finally build the pipeline
-	meshPipeline->pipeline = pipelineBuilder.build_pipeline(engine.device, RenderMode::Classic, drawImageRenderPass, meshPipeline);
-	
+	meshPipeline.pipeline = pipelineBuilder.build_pipeline(engine.device, RenderMode::Classic, drawImageRenderPass, &meshPipeline);
+
 	fmt::print("Registered vertex shader: {} lastModified: {} after meshPipeline.pipline build function\n",
-		meshPipeline->shader.vertexShader.file,
-		meshPipeline->shader.vertexShader.lastModified.time_since_epoch().count());
+		meshPipeline.shader.vertexShader.file,
+		meshPipeline.shader.vertexShader.lastModified.time_since_epoch().count());
 
 
 	//clean structures
 	vkDestroyShaderModule(engine.device, vertexShader, nullptr);
 	vkDestroyShaderModule(engine.device, fragmentShader, nullptr);
-
-
 	
-	managePipeline.init_pipeline_resource(*meshPipeline);
+	managePipeline.init_pipeline_resource(meshPipeline, TrackShader::Yes);
 }
 
 void Renderer::init_imgui() {
@@ -635,7 +564,7 @@ void Renderer::render_pass_geometry(VkCommandBuffer cmd) {
 	scissor.extent.height = viewport.height;
 
 	vkCmdSetScissor(cmd, 0, 1, &scissor);
-	vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, managePipeline.get_pipeline(meshPipeline->pipelineID));
+	vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, managePipeline.get_pipeline(meshPipeline.pipelineID));
 
 	VkDescriptorSet imageSet = engine.get_current_frame().frameDescriptors->allocate(engine.device, singleImageDescriptorLayout);
 
@@ -645,7 +574,7 @@ void Renderer::render_pass_geometry(VkCommandBuffer cmd) {
 
 		writer.update_set(engine.device, imageSet);
 	}
-	vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, managePipeline.get_layout(meshPipeline->pipelineLayoutID), 0, 1, &imageSet, 0, nullptr);
+	vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, managePipeline.get_layout(meshPipeline.pipelineLayoutID), 0, 1, &imageSet, 0, nullptr);
 
 	GPUDrawPushConstants pushConstants;
 
@@ -659,9 +588,7 @@ void Renderer::render_pass_geometry(VkCommandBuffer cmd) {
 	pushConstants.worldMatrix = projection * view;
 	pushConstants.vertexBuffer = testMeshes[2]->meshBuffers.vertexBufferAddress;
 
-
-
-	vkCmdPushConstants(cmd, managePipeline.get_layout(meshPipeline->pipelineLayoutID), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &pushConstants);
+	vkCmdPushConstants(cmd, managePipeline.get_layout(meshPipeline.pipelineLayoutID), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &pushConstants);
 	vkCmdBindIndexBuffer(cmd, testMeshes[2]->meshBuffers.indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 
 	vkCmdDrawIndexed(cmd, testMeshes[2]->surfaces[0].count, 1, testMeshes[2]->surfaces[0].startIndex, 0, 0);
@@ -686,14 +613,6 @@ void Renderer::render_pass_geometry(VkCommandBuffer cmd) {
 void Renderer::render_imgui(VkCommandBuffer cmd) {
 	//classic renderpass
 	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmd);
-}
-
-void Renderer::init_dynamic_rendering(VkCommandBuffer cmd) {
-	//render_dynamic_geometry(cmd);
-}
-
-void Renderer::init_dynamic_rendering(VkCommandBuffer cmd, VkImageView targetImageView) {
-	render_dynamic_imgui(cmd, targetImageView);
 }
 
 void Renderer::render_dynamic_imgui(VkCommandBuffer cmd, VkImageView targetImageView) {
@@ -874,11 +793,6 @@ void Renderer::create_draw_image_framebuffer() {
 	engine.mainDeletionQueue.push_framebuffer(drawImageFrameBuffer);
 }
 
-//void GLTFMetallic_Roughness::build_pipelines(VulkanEngine* engine) {
-//	VkShaderModule meshVertShader;
-//	if(!vkutil::load_shader_module""))
-//}
-
 
 AllocatedImage Renderer::create_image(VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped) {
 
@@ -949,21 +863,17 @@ void PipelineManager::init_PipelineCache() {
 	VkPipelineCacheCreateInfo cacheInfo{};
 	cacheInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
 	cacheInfo.pNext = nullptr;
-	cacheInfo.flags = 0;              // usually 0; no special flags needed
-	cacheInfo.initialDataSize = 0;    // size of pre-existing cache data, 0 if none
-	cacheInfo.pInitialData = nullptr; // pointer to pre-existing cache data, nullptr if none
+	cacheInfo.flags = 0;              
+	cacheInfo.initialDataSize = 0;    
+	cacheInfo.pInitialData = nullptr; 
 
 
-	if (vkCreatePipelineCache(VulkanEngine::Get().device, &cacheInfo, nullptr, &pipelineCache) != VK_SUCCESS) {
-		fmt::println("failed to create cache for pipeline");
-		return;
-	};
-
+	VK_CHECK(vkCreatePipelineCache(VulkanEngine::Get().device, &cacheInfo, nullptr, &pipelineCache));
 }
 
-void PipelineManager::init_pipeline_resource(BasePipelineResource& res) {
+void PipelineManager::init_pipeline_resource(PipelineResource& res, TrackShader trackShader) {
 
-	fmt::print("init pipeline resource was called for first pipeline initliaze\n");
+	fmt::print("init pipeline resource was called for first pipeline initialize\n");
 
 
 	auto pipelineFinder = pipelineLookup.find(res.pipelineID); 
@@ -975,29 +885,29 @@ void PipelineManager::init_pipeline_resource(BasePipelineResource& res) {
 
 	} else if (pipelineFinder != pipelineLookup.end() && pipelineFinder->second)  {
 
-		 
+		fmt::print("init pipeline resource was called for hot reloading pipeline \n");
 
-			fmt::print("init pipeline resource was called for hotreloading pipeline \n");
+		VkPipeline oldPipeline = pipelineFinder->second;
 
-			VkPipeline oldPipeline = pipelineFinder->second;
+		auto& queue = VulkanEngine::Get().mainDeletionQueue.pipelines;
 
-			auto& queue = VulkanEngine::Get().mainDeletionQueue.pipelines;
+		fmt::print("This old pipeline is being removed: {}\n", (void*)oldPipeline);
+		queue.erase(std::remove(queue.begin(), queue.end(), oldPipeline), queue.end());
 
-			fmt::print("This old pipeline is being removed: {}\n", (void*)oldPipeline);
-			queue.erase(std::remove(queue.begin(), queue.end(), oldPipeline), queue.end());
+		pipelineFinder->second = res.pipeline;
 
-			pipelineFinder->second = res.pipeline;
-
-			queue.push_back(res.pipeline);
-		
+		queue.push_back(res.pipeline);
 	}
 	
-
 	auto layoutFinder = layoutLookup.find(res.pipelineLayoutID);
 	if (layoutFinder == layoutLookup.end()) {
 		res.pipelineLayoutID = PipelineManager::createLayoutID();
 		layoutLookup[res.pipelineLayoutID] = res.pipelineLayout;
 		VulkanEngine::Get().mainDeletionQueue.push_pipeline_layout(res.pipelineLayout);
+	}
+
+	if (trackShader == TrackShader::Yes) {
+		track_shaders_for_hotload(res);
 	}
 }
 
@@ -1023,7 +933,7 @@ void PipelineManager::store_pipeline(PipelineID pID, LayoutID lId, VkPipeline pi
 
 }
 
-void PipelineManager::link_shader(BasePipelineResource& resource) {
+void PipelineManager::track_shaders_for_hotload(PipelineResource& resource) {
 
 	fmt::print("Before link_shader: vertex='{}', fragment='{}'\n",
 		resource.shader.vertexShader.file,
@@ -1055,12 +965,11 @@ void PipelineManager::link_shader(BasePipelineResource& resource) {
 	}
 }
 
-
 void Renderer::HotloadShader() {
 	fmt::print("hotloadShader called\n");
 	auto& shaderMap = PipelineManager::get_shaderMap();
 
-	std::set<BasePipelineResource*>  pipelinesToRebuild;
+	std::set<PipelineResource*>  pipelinesToRebuild;
 
 
 	for (auto& [file, resource] : shaderMap) {
@@ -1116,16 +1025,13 @@ void Renderer::HotloadShader() {
 
 	for (auto* r : pipelinesToRebuild) {
 
-		r->rebuild(engine.device, *r);
+		rebuild(engine.device, *r);
 		
-		managePipeline.init_pipeline_resource(*r);
+		managePipeline.init_pipeline_resource(*r, TrackShader::Yes);
 	}
 	pipelinesToRebuild.clear();
 
 }
-
-
-
 
 VkPipelineLayout PipelineManager::get_layout(LayoutID id) const {
 	auto it = layoutLookup.find(id);
@@ -1147,7 +1053,7 @@ void PipelineManager::destroyPipelineCache() {
 }
 
 
-VkPipeline GraphicsPipelineResource::rebuild(VkDevice device, BasePipelineResource& res)  {
+VkPipeline Renderer::rebuild(VkDevice device, PipelineResource& res)  {
 	fmt::print("rebuildPipelines called\n");
 
 	VkPipeline oldPipeline = res.pipeline;
@@ -1164,13 +1070,13 @@ VkPipeline GraphicsPipelineResource::rebuild(VkDevice device, BasePipelineResour
 	VkShaderModule fragmentModule = VK_NULL_HANDLE;
 
 	if (!res.shader.vertexShader.file.empty()) {
-		vertexModule = vkutil::compileToSPV(device, res.shader.vertexShader.file, EShLangVertex);
+		vertexModule = shaderUtil::compileToSPV(device, res.shader.vertexShader.file, EShLangVertex);
 		resConfig->shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(
 			VK_SHADER_STAGE_VERTEX_BIT, vertexModule));
 	}
 
 	if (!res.shader.fragmentShader.file.empty()) {
-		fragmentModule = vkutil::compileToSPV(device, res.shader.fragmentShader.file, EShLangFragment);
+		fragmentModule = shaderUtil::compileToSPV(device, res.shader.fragmentShader.file, EShLangFragment);
 		resConfig->shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(
 			VK_SHADER_STAGE_FRAGMENT_BIT, fragmentModule));
 	}
@@ -1235,7 +1141,7 @@ VkPipeline GraphicsPipelineResource::rebuild(VkDevice device, BasePipelineResour
 }
 
 
-VkPipeline ComputePipelineResource::rebuild(VkDevice device, BasePipelineResource& res) {
-
-	return VK_NULL_HANDLE;
-}
+//VkPipeline ComputePipelineResource::rebuild(VkDevice device, BasePipelineResource& res) {
+//	// will be implemented when i need compute pipelines
+//	return VK_NULL_HANDLE;
+//}

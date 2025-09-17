@@ -1,35 +1,19 @@
 ﻿#pragma once 
 #include "vk_types.h"
-#include "util.h"
+#include "vk_util.h"
 #include "vk_renderer.h"
-
-
-
-
-namespace vkutil {
-	bool load_shader_module(const char* filePath, VkDevice device, VkShaderModule* outShaderModule);
-	VkShaderModule compileToSPV(VkDevice device, const std::string& shaderFile, EShLanguage stage);
-};
-extern TBuiltInResource DefaultTBuiltInResource;
-
-
-
 
 
 class PipelineBuilder {
 public:
 
-	
-	std::unique_ptr<BasePipelineResource> res = std::make_unique<GraphicsPipelineResource>();
-
+	std::unique_ptr<PipelineResource> res = std::make_unique<PipelineResource>();
 
 	PipelineBuilder() { clear(); }
 
-	
 	void clear();
 
-
-	VkPipeline build_pipeline(VkDevice device, RenderMode mode, const std::optional<VkRenderPass>& renderPass = std::nullopt, BasePipelineResource* storeRes = nullptr);
+	VkPipeline build_pipeline(VkDevice device, RenderMode mode, const std::optional<VkRenderPass>& renderPass = std::nullopt, PipelineResource* storeRes = nullptr);
 
 	void set_shaders(VkShaderModule vertexShader, VkShaderModule fragmentShader);
 	void set_polygon_mode(VkPolygonMode mode);

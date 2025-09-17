@@ -63,7 +63,7 @@
     <ClCompile Include="src\vk_renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\util.cpp">
+    <ClCompile Include="src\vk_util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -95,7 +95,7 @@
     <ClInclude Include="src\vk_renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\util.h">
+    <ClInclude Include="src\vk_util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
