@@ -13,7 +13,7 @@ public:
 
 	void clear();
 
-	VkPipeline build_pipeline(VkDevice device, RenderMode mode, const std::optional<VkRenderPass>& renderPass = std::nullopt, PipelineResource* storeRes = nullptr);
+	VkPipeline build_pipeline(VkDevice device, RenderMode mode,  PipelineResource* storeRes = nullptr);
 
 	void set_shaders(VkShaderModule vertexShader, VkShaderModule fragmentShader);
 	void set_polygon_mode(VkPolygonMode mode);
@@ -27,6 +27,8 @@ public:
 	void set_input_topology(VkPrimitiveTopology topology);
 	void enable_blending_additive();
 	void enable_blending_alphablend();
+	void set_renderpass(VkRenderPass renderpass);
+
 
 	
 };

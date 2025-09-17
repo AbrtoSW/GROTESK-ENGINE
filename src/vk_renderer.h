@@ -4,43 +4,13 @@
 #include "vk_loader.h"
 #include "vk_util.h"
 
-struct GLTFMetallic_Roughness {
-	//PipelineResource opaquePipeline;
-	//PipelineResource transparentPipeline;
 
-	VkDescriptorSetLayout materialLayout;
-
-	struct MaterialConstants {
-		glm::vec4 colorFactors;
-		glm::vec4 metal_rough_factors;
-		//padding, we need it anyway for uniform buffers
-		glm::vec4 extra[14];
-	};
-
-	struct MaterialResources {
-		AllocatedImage colorImage;
-		VkSampler colorSampler;
-		AllocatedImage metalRoughImage;
-		VkSampler metalRoughSampler;
-		VkBuffer dataBuffer;
-		uint32_t dataBufferOffset;
-	};
-
-	DescriptorWriter writer;
-
-	void build_pipelines(VulkanEngine* engine);
-	void clear_resources(VkDevice device);
-
-	MaterialInstance write_material(VkDevice device, MaterialPass pass, const MaterialResources& resources, DescriptorAllocatorGrowable& descriptorAllocator);
-};
 
 
 
 struct PipelineManager {
 
 public: 
-	friend class Renderer;
-
 
 	static void init_PipelineCache();
 	void static destroyPipelineCache();
@@ -51,7 +21,7 @@ public:
 	inline static auto& get_shaderMap() { return shaderMap; }
 
 
-	void init_pipeline_resource(PipelineResource& res, TrackShader trackShader);
+	void manage_pipeline(PipelineResource& res, TrackShader trackShader);
 	//temp function want to move to full init_pipeline_resource function 
 	void store_pipeline(PipelineID pID, LayoutID lID, VkPipeline pipeline, VkPipelineLayout layout);
 	void track_shaders_for_hotload(PipelineResource& resource);
@@ -74,8 +44,11 @@ class Renderer {
 
 public:
 
+
 	Renderer(VulkanEngine& engine);
 	~Renderer();
+
+
 
 	//imgui
 	std::vector<ComputeEffect> backgroundEffects;
@@ -93,9 +66,15 @@ public:
 	VkSampler defaultSamplerNearest;
 
 
+	VkDescriptorSetLayout gpuSceneDataDescriptorLayout;
+
+	VkRenderPass drawImageRenderPass = VK_NULL_HANDLE;
+
 	// made it so polymorphism is still enabled for hotloading but specific pipelines can be made so there isnt heap overhead 
 	PipelineResource meshPipeline;
 
+
+	PipelineManager managePipeline;
 
 	LayoutID gradientPipelineLayoutID;
 	PipelineID gradientPipelineID;
@@ -111,7 +90,6 @@ public:
 	
 	VkPipeline rebuild(VkDevice device, PipelineResource& res);
 
-
 	void HotloadShader();
 
 private:
@@ -122,7 +100,6 @@ private:
 	// Render-related resources
 	VkRenderPass swapchainRenderPass = VK_NULL_HANDLE;
 	std::vector<VkFramebuffer> swapchainFrameBuffers = {};
-	VkRenderPass drawImageRenderPass = VK_NULL_HANDLE;
 	VkFramebuffer drawImageFrameBuffer = VK_NULL_HANDLE;
 	VkExtent2D drawExtent{};
 	
@@ -132,19 +109,11 @@ private:
 	VkDescriptorSetLayout singleImageDescriptorLayout;
 
 	GPUSceneData sceneData;
-	VkDescriptorSetLayout gpuSceneDataDescriptorLayout;
 
 	DescriptorAllocatorGrowable globalDescriptorAllocator{};
 	VkDescriptorPool imguiPool = VK_NULL_HANDLE;
 
-	PipelineManager managePipeline;
-
 	std::vector<std::shared_ptr<MeshAsset>> testMeshes;
-
-
-
-	void init_dynamic_rendering(VkCommandBuffer cmd);
-	void init_dynamic_rendering(VkCommandBuffer cmd, VkImageView targetImageView);
 
 	void init_draw_image_renderpass(VkCommandBuffer cmd);
 	void init_swapchain_renderpass(VkCommandBuffer cmd, uint32_t imageIndex);
@@ -175,4 +144,37 @@ private:
 	AllocatedImage create_image(VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped = false);
 	AllocatedImage create_image(void* data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped = false);
 
+};
+
+
+struct GLTFMetallic_Roughness {
+
+
+	PipelineResource opaquePipeline;
+	PipelineResource transparentPipeline;
+
+	VkDescriptorSetLayout materialLayout;
+
+	struct MaterialConstants {
+		glm::vec4 colorFactors;
+		glm::vec4 metal_rough_factors;
+		//padding, we need it anyway for uniform buffers
+		glm::vec4 extra[14];
+	};
+
+	struct MaterialResources {
+		AllocatedImage colorImage;
+		VkSampler colorSampler;
+		AllocatedImage metalRoughImage;
+		VkSampler metalRoughSampler;
+		VkBuffer dataBuffer;
+		uint32_t dataBufferOffset;
+	};
+
+	DescriptorWriter writer;
+
+	void build_pipelines(VulkanEngine* engine, Renderer* renderer);
+	void clear_resources(VkDevice device);
+
+	MaterialInstance write_material(VkDevice device, MaterialPass pass, const MaterialResources& resources, DescriptorAllocatorGrowable& descriptorAllocator);
 };

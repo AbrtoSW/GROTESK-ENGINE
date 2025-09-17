@@ -32,6 +32,8 @@ class DescriptorAllocatorGrowable;
 namespace shaderUtil {
 	bool load_shader_module(const char* filePath, VkDevice device, VkShaderModule* outShaderModule);
 	VkShaderModule compileToSPV(VkDevice device, const std::string& shaderFile, EShLanguage stage);
+	std::filesystem::file_time_type getFileTimeStamp(const std::string& shaderFile);
+
 };
 
 
@@ -40,7 +42,6 @@ namespace shaderUtil {
 
 std::string readFile(const std::string& filepath);
 
-std::filesystem::file_time_type getFileTimeStamp(const std::string& shaderFile);
 
 struct DeletionQueue {
 

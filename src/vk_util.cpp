@@ -114,7 +114,7 @@ TBuiltInResource DefaultTBuiltInResource = {
 
 
 
-std::filesystem::file_time_type getFileTimeStamp(const std::string& shaderFile) {
+std::filesystem::file_time_type shaderUtil::getFileTimeStamp(const std::string& shaderFile) {
 	return std::filesystem::last_write_time(shaderFile);
 }
 

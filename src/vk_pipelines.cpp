@@ -31,7 +31,7 @@ void PipelineBuilder::clear() {
 
 
 
-VkPipeline PipelineBuilder::build_pipeline(VkDevice device, RenderMode mode, const std::optional<VkRenderPass>& renderPass, PipelineResource* storeRes) {
+VkPipeline PipelineBuilder::build_pipeline(VkDevice device, RenderMode mode, PipelineResource* storeResource) {
 
 	auto* graphicsResourceConfig = res->getGraphicsConfig();
 
@@ -84,8 +84,7 @@ VkPipeline PipelineBuilder::build_pipeline(VkDevice device, RenderMode mode, con
 		}
 		
 	} else {
-		pipelineInfo.renderPass = renderPass.value();
-		graphicsResourceConfig->renderPass = renderPass.value();
+		pipelineInfo.renderPass = graphicsResourceConfig->renderPass;
 		pipelineInfo.subpass = 0;
 	}
 
@@ -102,30 +101,32 @@ VkPipeline PipelineBuilder::build_pipeline(VkDevice device, RenderMode mode, con
 		fmt::println("failed to create pipeline");
 		return VK_NULL_HANDLE;
 
+	}  
+	if (storeResource->type == Uninitialized) {
+		fmt::print("pipeline resource .type is not initialized correctly, hotloading won't work\n");
+	} 
+	else if (storeResource->type == PipelineType::Graphics) {
+		 
+			storeResource->getGraphicsConfig()->shaderStages = graphicsResourceConfig->shaderStages;  // compiled shader stages (VkPipelineShaderStageCreateInfo)
+			storeResource->getGraphicsConfig()->vertexInputInfo = graphicsResourceConfig->vertexInputInfo;
+			storeResource->getGraphicsConfig()->inputAssembly = graphicsResourceConfig->inputAssembly;
+			storeResource->getGraphicsConfig()->viewportStateInfo = graphicsResourceConfig->viewportStateInfo;
+			storeResource->getGraphicsConfig()->rasterizer = graphicsResourceConfig->rasterizer;
+			storeResource->getGraphicsConfig()->multisampling = graphicsResourceConfig->multisampling;
+			storeResource->getGraphicsConfig()->colorBlendAttachment = graphicsResourceConfig->colorBlendAttachment;
+			storeResource->getGraphicsConfig()->colorBlendingInfo = graphicsResourceConfig->colorBlendingInfo;
+			storeResource->getGraphicsConfig()->colorBlendingInfo.pAttachments = &storeResource->getGraphicsConfig()->colorBlendAttachment;
+			storeResource->getGraphicsConfig()->depthStencil = graphicsResourceConfig->depthStencil;
+			storeResource->getGraphicsConfig()->dynamicStates = graphicsResourceConfig->dynamicStates;
+			storeResource->getGraphicsConfig()->dynamicStateInfo = graphicsResourceConfig->dynamicStateInfo;
+			storeResource->getGraphicsConfig()->dynamicStateInfo.pDynamicStates = storeResource->getGraphicsConfig()->dynamicStates.data();
+			storeResource->getGraphicsConfig()->renderInfo = graphicsResourceConfig->renderInfo;
+			storeResource->getGraphicsConfig()->renderPass = graphicsResourceConfig->renderPass;
+			storeResource->pipelineLayout = res->pipelineLayout;
+			storeResource->pipeline = res->pipeline;
 	}
-	else {
-		if (storeRes->type == PipelineType::Graphics) {
-			storeRes->getGraphicsConfig()->shaderStages = graphicsResourceConfig->shaderStages;  // compiled shader stages (VkPipelineShaderStageCreateInfo)
-			storeRes->getGraphicsConfig()->vertexInputInfo = graphicsResourceConfig->vertexInputInfo;
-			storeRes->getGraphicsConfig()->inputAssembly = graphicsResourceConfig->inputAssembly;
-			storeRes->getGraphicsConfig()->viewportStateInfo = graphicsResourceConfig->viewportStateInfo;
-			storeRes->getGraphicsConfig()->rasterizer = graphicsResourceConfig->rasterizer;
-			storeRes->getGraphicsConfig()->multisampling = graphicsResourceConfig->multisampling;
-			storeRes->getGraphicsConfig()->colorBlendAttachment = graphicsResourceConfig->colorBlendAttachment;
-			storeRes->getGraphicsConfig()->colorBlendingInfo = graphicsResourceConfig->colorBlendingInfo;
-			storeRes->getGraphicsConfig()->colorBlendingInfo.pAttachments = &storeRes->getGraphicsConfig()->colorBlendAttachment;
-			storeRes->getGraphicsConfig()->depthStencil = graphicsResourceConfig->depthStencil;
-			storeRes->getGraphicsConfig()->dynamicStates = graphicsResourceConfig->dynamicStates;
-			storeRes->getGraphicsConfig()->dynamicStateInfo = graphicsResourceConfig->dynamicStateInfo;
-			storeRes->getGraphicsConfig()->dynamicStateInfo.pDynamicStates = storeRes->getGraphicsConfig()->dynamicStates.data();
-			storeRes->pipelineLayout = res->pipelineLayout;
-			storeRes->getGraphicsConfig()->renderInfo = graphicsResourceConfig->renderInfo;
-			storeRes->getGraphicsConfig()->renderPass = graphicsResourceConfig->renderPass;
-		
-			storeRes->pipeline = res->pipeline;
-		}
-		return newPipeline;
-	}
+	
+	return newPipeline;
 }
 
 void PipelineBuilder::set_shaders(VkShaderModule vertexShader, VkShaderModule fragmentShader) {
@@ -138,6 +139,12 @@ void PipelineBuilder::set_shaders(VkShaderModule vertexShader, VkShaderModule fr
 
 	graphicsResourceConfig->shaderStages.push_back(
 		vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_FRAGMENT_BIT, fragmentShader));
+}
+
+void PipelineBuilder::set_renderpass(VkRenderPass renderpass) {
+	auto* graphicsResourceConfig = res->getGraphicsConfig();
+
+	graphicsResourceConfig->renderPass = renderpass;
 }
 
 

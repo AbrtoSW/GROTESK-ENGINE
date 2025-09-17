@@ -134,6 +134,7 @@ struct BaseGraphicsPipelineConfig {
 };
 
 enum PipelineType {
+	Uninitialized,
 	Graphics,
 	Compute,
 };
@@ -148,7 +149,6 @@ struct PipelineResource {
 			//for polymorphism we'll see if i develop this further for now ill keep this
 			return std::get<std::unique_ptr<BaseGraphicsPipelineConfig>>(config).get();
 		}
-
 	}
 
 	VkPipeline pipeline;
@@ -156,7 +156,7 @@ struct PipelineResource {
 	Shader shader;
 	LayoutID pipelineLayoutID;
 	PipelineID pipelineID;
-	PipelineType type;
+	PipelineType type = Uninitialized;
 
 private:
 	std::variant<BaseGraphicsPipelineConfig, std::unique_ptr<BaseGraphicsPipelineConfig>> config;

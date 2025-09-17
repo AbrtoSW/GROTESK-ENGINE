@@ -345,11 +345,12 @@ void Renderer::init_backgound_pipelines() {
 
 void Renderer::init_mesh_pipeline() {
 
+
 	meshPipeline.shader.vertexShader.file = "C:/Users/Alberto/source/repos/GROTESK/GROTESK/res/shaders/colored_triangle_mesh_test.vert";
 	meshPipeline.shader.fragmentShader.file = "C:/Users/Alberto/source/repos/GROTESK/GROTESK/res/shaders/tex_image_test.frag";
 
-	meshPipeline.shader.vertexShader.lastModified = getFileTimeStamp(meshPipeline.shader.vertexShader.file);
-	meshPipeline.shader.fragmentShader.lastModified = getFileTimeStamp(meshPipeline.shader.fragmentShader.file);
+	meshPipeline.shader.vertexShader.lastModified = shaderUtil::getFileTimeStamp(meshPipeline.shader.vertexShader.file);
+	meshPipeline.shader.fragmentShader.lastModified = shaderUtil::getFileTimeStamp(meshPipeline.shader.fragmentShader.file);
 
 	meshPipeline.shader.vertexShader.stage = VK_SHADER_STAGE_VERTEX_BIT;
 	meshPipeline.shader.fragmentShader.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -364,6 +365,7 @@ void Renderer::init_mesh_pipeline() {
 	meshPipelineConfig->pushConstantRange.offset = 0;
 	meshPipelineConfig->pushConstantRange.size = sizeof(GPUDrawPushConstants);
 	meshPipelineConfig->pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
 	meshPipelineConfig->layoutInfo = vkinit::pipeline_layout_create_info();
 	meshPipelineConfig->layoutInfo.pPushConstantRanges = &meshPipelineConfig->pushConstantRange;
 	meshPipelineConfig->layoutInfo.pushConstantRangeCount = 1;
@@ -389,6 +391,7 @@ void Renderer::init_mesh_pipeline() {
 	//pipelineBuilder.enable_blending_additive();
 	pipelineBuilder.disable_blending();
 	pipelineBuilder.enable_depthtest(true, VK_COMPARE_OP_GREATER_OR_EQUAL);
+	pipelineBuilder.set_renderpass(drawImageRenderPass);
 
 	
 	//connect the image format we will draw into, from draw image
@@ -396,7 +399,7 @@ void Renderer::init_mesh_pipeline() {
 	//pipelineBuilder.set_depth_format(engine.depthImage.imageFormat);
 
 	//finally build the pipeline
-	meshPipeline.pipeline = pipelineBuilder.build_pipeline(engine.device, RenderMode::Classic, drawImageRenderPass, &meshPipeline);
+	meshPipeline.pipeline = pipelineBuilder.build_pipeline(engine.device, RenderMode::Classic, &meshPipeline);
 
 	fmt::print("Registered vertex shader: {} lastModified: {} after meshPipeline.pipline build function\n",
 		meshPipeline.shader.vertexShader.file,
@@ -407,7 +410,7 @@ void Renderer::init_mesh_pipeline() {
 	vkDestroyShaderModule(engine.device, vertexShader, nullptr);
 	vkDestroyShaderModule(engine.device, fragmentShader, nullptr);
 	
-	managePipeline.init_pipeline_resource(meshPipeline, TrackShader::Yes);
+	managePipeline.manage_pipeline(meshPipeline, TrackShader::Yes);
 }
 
 void Renderer::init_imgui() {
@@ -859,6 +862,7 @@ AllocatedImage Renderer::create_image(void* data, VkExtent3D size, VkFormat form
 	return new_image;
 }
 
+
 void PipelineManager::init_PipelineCache() {
 	VkPipelineCacheCreateInfo cacheInfo{};
 	cacheInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
@@ -871,9 +875,9 @@ void PipelineManager::init_PipelineCache() {
 	VK_CHECK(vkCreatePipelineCache(VulkanEngine::Get().device, &cacheInfo, nullptr, &pipelineCache));
 }
 
-void PipelineManager::init_pipeline_resource(PipelineResource& res, TrackShader trackShader) {
+void PipelineManager::manage_pipeline(PipelineResource& res, TrackShader trackShader) {
 
-	fmt::print("init pipeline resource was called for first pipeline initialize\n");
+	fmt::print("managing pipeline called \n");
 
 
 	auto pipelineFinder = pipelineLookup.find(res.pipelineID); 
@@ -973,7 +977,7 @@ void Renderer::HotloadShader() {
 
 
 	for (auto& [file, resource] : shaderMap) {
-		std::filesystem::file_time_type currentWriteTimeStamp = getFileTimeStamp(file);
+		std::filesystem::file_time_type currentWriteTimeStamp = shaderUtil::getFileTimeStamp(file);
 		for (auto* r : resource) {
 		
 			if (file == r->shader.vertexShader.file) {
@@ -1027,7 +1031,7 @@ void Renderer::HotloadShader() {
 
 		rebuild(engine.device, *r);
 		
-		managePipeline.init_pipeline_resource(*r, TrackShader::Yes);
+		managePipeline.manage_pipeline(*r, TrackShader::Yes);
 	}
 	pipelinesToRebuild.clear();
 
@@ -1051,7 +1055,6 @@ void PipelineManager::destroyPipelineCache() {
 		pipelineCache = VK_NULL_HANDLE;
 	}
 }
-
 
 VkPipeline Renderer::rebuild(VkDevice device, PipelineResource& res)  {
 	fmt::print("rebuildPipelines called\n");
@@ -1141,7 +1144,67 @@ VkPipeline Renderer::rebuild(VkDevice device, PipelineResource& res)  {
 }
 
 
-//VkPipeline ComputePipelineResource::rebuild(VkDevice device, BasePipelineResource& res) {
-//	// will be implemented when i need compute pipelines
-//	return VK_NULL_HANDLE;
-//}
+void GLTFMetallic_Roughness::build_pipelines(VulkanEngine* engine, Renderer* renderer) {
+
+	opaquePipeline.type = PipelineType::Graphics;
+	transparentPipeline.type = PipelineType::Graphics;
+
+	opaquePipeline.shader.vertexShader.file = "C:/Users/Alberto/source/repos/GROTESK/GROTESK/res/shaders/mesh.vert";
+	opaquePipeline.shader.fragmentShader.file = "C:/Users/Alberto/source/repos/GROTESK/GROTESK/res/shaders/mesh.frag";
+
+	opaquePipeline.shader.vertexShader.lastModified = shaderUtil::getFileTimeStamp(opaquePipeline.shader.vertexShader.file);
+	opaquePipeline.shader.fragmentShader.lastModified = shaderUtil::getFileTimeStamp(opaquePipeline.shader.fragmentShader.file);
+
+
+	VkShaderModule meshVertShader = shaderUtil::compileToSPV(engine->device, opaquePipeline.shader.vertexShader.file, EShLangVertex);
+	VkShaderModule meshFragShader = shaderUtil::compileToSPV(engine->device, opaquePipeline.shader.fragmentShader.file, EShLangFragment);
+
+
+	auto* config = opaquePipeline.getGraphicsConfig();
+
+	config->pushConstantRange.offset = 0;
+	config->pushConstantRange.size = sizeof(GPUDrawPushConstants);
+	config->pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+	DescriptorLayoutBuilder layoutBuilder;
+	layoutBuilder.add_binding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+	layoutBuilder.add_binding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+	layoutBuilder.add_binding(2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+
+	VkDescriptorSetLayout layouts[] = { renderer->gpuSceneDataDescriptorLayout, materialLayout };
+
+	config->layoutInfo = vkinit::pipeline_layout_create_info();
+	config->layoutInfo.setLayoutCount = 2;
+	config->layoutInfo.pSetLayouts = layouts;
+	config->layoutInfo.pPushConstantRanges = &config->pushConstantRange;
+	config->layoutInfo.pushConstantRangeCount = 1;
+
+	VK_CHECK(vkCreatePipelineLayout(engine->device, &config->layoutInfo, engine->vkAllocator, &opaquePipeline.pipelineLayout));
+
+	transparentPipeline.pipelineLayout = opaquePipeline.pipelineLayout;
+
+	PipelineBuilder builder;
+	builder.set_shaders(meshVertShader, meshFragShader);
+	builder.set_input_topology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+	builder.set_polygon_mode(VK_POLYGON_MODE_FILL);
+	builder.set_cull_mode(VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE);
+	builder.set_multisampling_none();
+	builder.disable_blending();
+	builder.enable_depthtest(true, VK_COMPARE_OP_GREATER_OR_EQUAL);
+	builder.set_renderpass(renderer->drawImageRenderPass);
+	builder.res->pipelineLayout = opaquePipeline.pipelineLayout;
+
+	opaquePipeline.pipeline = builder.build_pipeline(engine->device, RenderMode::Classic, &opaquePipeline);
+
+	builder.enable_blending_additive();
+	builder.enable_depthtest(false, VK_COMPARE_OP_GREATER_OR_EQUAL);
+
+	transparentPipeline.pipeline = builder.build_pipeline(engine->device, RenderMode::Classic, &transparentPipeline);
+
+	vkDestroyShaderModule(engine->device, meshVertShader, nullptr);
+	vkDestroyShaderModule(engine->device, meshFragShader, nullptr);
+
+	renderer->managePipeline.manage_pipeline(opaquePipeline, TrackShader::Yes);
+	renderer->managePipeline.manage_pipeline(transparentPipeline, TrackShader::Yes);
+}
+
