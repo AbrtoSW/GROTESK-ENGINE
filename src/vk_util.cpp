@@ -154,6 +154,34 @@ bool shaderUtil::load_shader_module(const char* filePath, VkDevice device, VkSha
 	return true;
 }
 
+glslang::TShader::Includer::IncludeResult* RuntimeIncluder::includeLocal(const char* headerName, const char* includerName, size_t includeDepth) {
+
+	std::ifstream file("C:/Users/Alberto/source/repos/GROTESK/GROTESK/res/shaders/" + std::string(headerName));
+	if (!file.is_open()) {
+    fmt::print("Failed to open include file: {}\n", headerName);
+    return nullptr;
+}
+
+	std::string contents((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+
+	// Allocate heap memory for glslang
+	char* buffer = new char[contents.size() + 1];
+	memcpy(buffer, contents.c_str(), contents.size() + 1);
+
+	return new IncludeResult(headerName, buffer, contents.size(), nullptr);
+}
+
+glslang::TShader::Includer::IncludeResult* RuntimeIncluder::includeSystem(const char* headerName,const char* includerName, size_t includeDepth) {
+	return includeLocal(headerName, includerName, includeDepth);
+}
+
+
+void RuntimeIncluder::releaseInclude(IncludeResult* result)
+{
+	if (!result) return;
+	delete[] result->headerData;
+	delete result;
+}
 
 VkShaderModule shaderUtil::compileToSPV(VkDevice device, const std::string& shaderFile, EShLanguage stage) {
 
@@ -165,7 +193,11 @@ VkShaderModule shaderUtil::compileToSPV(VkDevice device, const std::string& shad
 
 	glslang::TShader shader(stage);
 	shader.setStrings(&sourcePtr, 1);
-	if (!shader.parse(&DefaultTBuiltInResource, 110, false, messages)) {
+	
+
+	RuntimeIncluder includer;
+
+	if (!shader.parse(&DefaultTBuiltInResource, 110, false, messages, includer)) {
 		fmt::print("Shader compile error: {}\n", shader.getInfoLog());
 		throw std::runtime_error(shader.getInfoLog());
 	}
@@ -189,10 +221,10 @@ VkShaderModule shaderUtil::compileToSPV(VkDevice device, const std::string& shad
 		throw std::runtime_error("Failed to create shader module");
 	}
 
+	// you can make a cache to make compilation times quicker 
+
 	return shaderModule;
 }
-
-
 
 
 
@@ -299,3 +331,4 @@ void DeletionQueue::resizeFlush(VkDevice device, VmaAllocator& vmaAllocator) {
 		}
 	}
 }
+

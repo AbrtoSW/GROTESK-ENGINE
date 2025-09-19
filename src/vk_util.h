@@ -38,7 +38,15 @@ namespace shaderUtil {
 
 
 
+class RuntimeIncluder : public glslang::TShader::Includer {
 
+public:
+	IncludeResult* includeLocal(const char* headerName, const char* includerName, size_t includeDepth) override;
+
+	IncludeResult* includeSystem(const char* headerName, const char* includerName, size_t includeDepth) override;
+
+	void releaseInclude(IncludeResult* result) override;
+};
 
 std::string readFile(const std::string& filepath);
 

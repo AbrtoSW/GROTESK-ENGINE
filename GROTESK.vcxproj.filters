@@ -111,7 +111,6 @@
     <None Include="res\shaders\sky.comp" />
     <None Include="res\shaders\mesh.vert" />
     <None Include="res\shaders\mesh.frag" />
-    <None Include="res\shaders\input_structures.glsl" />
     <None Include="res\shaders\gradient_color.comp.spv" />
     <None Include="res\shaders\gradient_color.comp" />
     <None Include="res\shaders\sky.comp.spv" />

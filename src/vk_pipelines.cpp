@@ -66,7 +66,7 @@ VkPipeline PipelineBuilder::build_pipeline(VkDevice device, RenderMode mode, Pip
 	pipelineInfo.pMultisampleState = &graphicsResourceConfig->multisampling;
 	pipelineInfo.pColorBlendState = &graphicsResourceConfig->colorBlendingInfo;
 	pipelineInfo.pDepthStencilState = &graphicsResourceConfig->depthStencil;
-	pipelineInfo.layout = res->pipelineLayout;
+	pipelineInfo.layout = res->pipelineLayout.layout;
 
 	graphicsResourceConfig->renderMode = mode;
 	
@@ -122,7 +122,7 @@ VkPipeline PipelineBuilder::build_pipeline(VkDevice device, RenderMode mode, Pip
 			storeResource->getGraphicsConfig()->dynamicStateInfo.pDynamicStates = storeResource->getGraphicsConfig()->dynamicStates.data();
 			storeResource->getGraphicsConfig()->renderInfo = graphicsResourceConfig->renderInfo;
 			storeResource->getGraphicsConfig()->renderPass = graphicsResourceConfig->renderPass;
-			storeResource->pipelineLayout = res->pipelineLayout;
+			storeResource->pipelineLayout.layout = res->pipelineLayout.layout;
 			storeResource->pipeline = res->pipeline;
 	}
 	

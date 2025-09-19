@@ -4,8 +4,38 @@
 #include "vk_loader.h"
 #include "vk_util.h"
 
+class Renderer;
 
+struct GLTFMetallic_Roughness {
 
+	PipelineResource opaquePipeline;
+	PipelineResource transparentPipeline;
+
+	VkDescriptorSetLayout materialLayout;
+
+	struct MaterialConstants {
+		glm::vec4 colorFactors;
+		glm::vec4 metal_rough_factors;
+		//padding, we need it anyway for uniform buffers
+		glm::vec4 extra[14];
+	};
+
+	struct MaterialResources {
+		AllocatedImage colorImage;
+		VkSampler colorSampler;
+		AllocatedImage metalRoughImage;
+		VkSampler metalRoughSampler;
+		VkBuffer dataBuffer;
+		uint32_t dataBufferOffset;
+	};
+
+	DescriptorWriter writer;
+
+	void build_pipelines(VulkanEngine* engine, Renderer* renderer);
+	void clear_resources(VkDevice device);
+
+	MaterialInstance write_material(VkDevice device, MaterialPass pass, const MaterialResources& resources, DescriptorAllocatorGrowable& descriptorAllocator);
+};
 
 
 struct PipelineManager {
@@ -21,11 +51,11 @@ public:
 	inline static auto& get_shaderMap() { return shaderMap; }
 
 
-	void manage_pipeline(PipelineResource& res, TrackShader trackShader);
+	void manage_pipeline(PipelineResource& res, TrackShader trackShader, PipelineLayoutResource* layout = nullptr);
 	//temp function want to move to full init_pipeline_resource function 
 	void store_pipeline(PipelineID pID, LayoutID lID, VkPipeline pipeline, VkPipelineLayout layout);
-	void track_shaders_for_hotload(PipelineResource& resource);
 	VkPipelineLayout get_layout(LayoutID id) const;
+	void track_shaders_for_hotload(PipelineResource& resource);
 	VkPipeline get_pipeline(PipelineID id) const;
 
 	inline static VkPipelineCache pipelineCache = VK_NULL_HANDLE;
@@ -37,6 +67,8 @@ public:
 
 	std::unordered_map<LayoutID, VkPipelineLayout> layoutLookup;
 	std::unordered_map<PipelineID, VkPipeline> pipelineLookup;
+	std::unordered_map<LayoutID, std::vector<VkPipeline>> sharedLayouts;
+
 };
 
 
@@ -44,11 +76,8 @@ class Renderer {
 
 public:
 
-
 	Renderer(VulkanEngine& engine);
 	~Renderer();
-
-
 
 	//imgui
 	std::vector<ComputeEffect> backgroundEffects;
@@ -75,10 +104,13 @@ public:
 
 
 	PipelineManager managePipeline;
-
 	LayoutID gradientPipelineLayoutID;
 	PipelineID gradientPipelineID;
 	PipelineID skyPipelineID;
+
+	MaterialInstance defaultData;
+	GLTFMetallic_Roughness metalRoughMaterial;
+
 
 	// engine functions
 	void init_renderer();
@@ -93,9 +125,7 @@ public:
 	void HotloadShader();
 
 private:
-
 	VulkanEngine& engine;
-
 
 	// Render-related resources
 	VkRenderPass swapchainRenderPass = VK_NULL_HANDLE;
@@ -143,38 +173,6 @@ private:
 
 	AllocatedImage create_image(VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped = false);
 	AllocatedImage create_image(void* data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped = false);
-
 };
 
 
-struct GLTFMetallic_Roughness {
-
-
-	PipelineResource opaquePipeline;
-	PipelineResource transparentPipeline;
-
-	VkDescriptorSetLayout materialLayout;
-
-	struct MaterialConstants {
-		glm::vec4 colorFactors;
-		glm::vec4 metal_rough_factors;
-		//padding, we need it anyway for uniform buffers
-		glm::vec4 extra[14];
-	};
-
-	struct MaterialResources {
-		AllocatedImage colorImage;
-		VkSampler colorSampler;
-		AllocatedImage metalRoughImage;
-		VkSampler metalRoughSampler;
-		VkBuffer dataBuffer;
-		uint32_t dataBufferOffset;
-	};
-
-	DescriptorWriter writer;
-
-	void build_pipelines(VulkanEngine* engine, Renderer* renderer);
-	void clear_resources(VkDevice device);
-
-	MaterialInstance write_material(VkDevice device, MaterialPass pass, const MaterialResources& resources, DescriptorAllocatorGrowable& descriptorAllocator);
-};

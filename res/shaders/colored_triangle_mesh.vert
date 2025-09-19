@@ -1,6 +1,6 @@
 #version 450
 #extension GL_EXT_buffer_reference : require
-
+#extension GL_KHR_vulkan_glsl : enable
 
 layout (location = 0) out vec3 outColor;
 layout (location = 1) out vec2 outUV;
@@ -28,7 +28,7 @@ void main()
 {	
 	//load vertex data from device address
 	Vertex v = PushConstants.vertexBuffer.vertices[gl_VertexIndex];
-
+	
 	//output data
 	gl_Position = PushConstants.render_matrix *vec4(v.position, 1.0f);
 	outColor = v.color.xyz;

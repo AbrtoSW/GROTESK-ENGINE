@@ -35,6 +35,7 @@ void Renderer::init_renderer() {
 void Renderer::init_pipelines() {
 	init_backgound_pipelines();
 	init_mesh_pipeline();
+	metalRoughMaterial.build_pipelines(&engine, this);
 }
 
 void Renderer::render_frame() {
@@ -210,9 +211,11 @@ void Renderer::init_framebuffers() {
 void Renderer::init_descriptors() {
 
 
-	std::vector<DescriptorAllocatorGrowable::PoolSizeRatio> sizes = {
+	std::vector<DescriptorAllocatorGrowable::PoolSizeRatio> sizes =
+	{
 		{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1 },
-		{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1 }
+		{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1 },
+		{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1 }
 	};
 
 	globalDescriptorAllocator.init(engine.device, 10, sizes);
@@ -345,7 +348,7 @@ void Renderer::init_backgound_pipelines() {
 
 void Renderer::init_mesh_pipeline() {
 
-
+	meshPipeline.type = PipelineType::Graphics;
 	meshPipeline.shader.vertexShader.file = "C:/Users/Alberto/source/repos/GROTESK/GROTESK/res/shaders/colored_triangle_mesh_test.vert";
 	meshPipeline.shader.fragmentShader.file = "C:/Users/Alberto/source/repos/GROTESK/GROTESK/res/shaders/tex_image_test.frag";
 
@@ -372,7 +375,8 @@ void Renderer::init_mesh_pipeline() {
 	meshPipelineConfig->layoutInfo.pSetLayouts = &singleImageDescriptorLayout;
 	meshPipelineConfig->layoutInfo.setLayoutCount = 1;
 
-	VK_CHECK(vkCreatePipelineLayout(engine.device, &meshPipelineConfig->layoutInfo, nullptr, &meshPipeline.pipelineLayout));
+
+	VK_CHECK(vkCreatePipelineLayout(engine.device, &meshPipelineConfig->layoutInfo, nullptr, &meshPipeline.pipelineLayout.layout));
 
 	PipelineBuilder pipelineBuilder;
 	//use the triangle layout we created
@@ -544,6 +548,31 @@ void Renderer::init_default_data() {
 	engine.mainDeletionQueue.push_mesh_buffer_deletion(rectangle);
 
 
+	GLTFMetallic_Roughness::MaterialResources materialResources;
+	materialResources.colorImage = whiteImage;
+	materialResources.colorSampler = defaultSamplerLinear;
+	materialResources.metalRoughImage = whiteImage;
+	materialResources.metalRoughSampler = defaultSamplerLinear;
+
+	AllocatedBuffer materialConstants = engine.create_buffer(sizeof(GLTFMetallic_Roughness::MaterialConstants), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+
+	void* data;
+
+	vmaMapMemory(engine.vmaAllocator, materialConstants.allocation, &data);
+
+	GLTFMetallic_Roughness::MaterialConstants* sceneUniformData = reinterpret_cast<GLTFMetallic_Roughness::MaterialConstants*>(data);
+
+	sceneUniformData->colorFactors = glm::vec4{ 1,1,1,1 };
+	sceneUniformData->metal_rough_factors = glm::vec4{ 1,0.5,0,0 };
+
+	engine.mainDeletionQueue.push_allocated_buffer(materialConstants);
+
+	materialResources.dataBuffer = materialConstants.buffer;
+	materialResources.dataBufferOffset = 0;
+
+	defaultData = metalRoughMaterial.write_material(engine.device, MaterialPass::MainColor, materialResources, globalDescriptorAllocator);
+
+
 }
 
 void Renderer::render_pass_geometry(VkCommandBuffer cmd) {
@@ -577,7 +606,7 @@ void Renderer::render_pass_geometry(VkCommandBuffer cmd) {
 
 		writer.update_set(engine.device, imageSet);
 	}
-	vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, managePipeline.get_layout(meshPipeline.pipelineLayoutID), 0, 1, &imageSet, 0, nullptr);
+	vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, managePipeline.get_layout(meshPipeline.pipelineLayout.pipelineLayoutID), 0, 1, &imageSet, 0, nullptr);
 
 	GPUDrawPushConstants pushConstants;
 
@@ -591,7 +620,7 @@ void Renderer::render_pass_geometry(VkCommandBuffer cmd) {
 	pushConstants.worldMatrix = projection * view;
 	pushConstants.vertexBuffer = testMeshes[2]->meshBuffers.vertexBufferAddress;
 
-	vkCmdPushConstants(cmd, managePipeline.get_layout(meshPipeline.pipelineLayoutID), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &pushConstants);
+	vkCmdPushConstants(cmd, managePipeline.get_layout(meshPipeline.pipelineLayout.pipelineLayoutID), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &pushConstants);
 	vkCmdBindIndexBuffer(cmd, testMeshes[2]->meshBuffers.indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 
 	vkCmdDrawIndexed(cmd, testMeshes[2]->surfaces[0].count, 1, testMeshes[2]->surfaces[0].startIndex, 0, 0);
@@ -875,19 +904,23 @@ void PipelineManager::init_PipelineCache() {
 	VK_CHECK(vkCreatePipelineCache(VulkanEngine::Get().device, &cacheInfo, nullptr, &pipelineCache));
 }
 
-void PipelineManager::manage_pipeline(PipelineResource& res, TrackShader trackShader) {
+void PipelineManager::manage_pipeline(PipelineResource& res, TrackShader trackShader, PipelineLayoutResource* layoutShared) {
 
 	fmt::print("managing pipeline called \n");
 
 
-	auto pipelineFinder = pipelineLookup.find(res.pipelineID); 
-	
+	auto pipelineFinder = pipelineLookup.find(res.pipelineID);
+
 	if (pipelineFinder == pipelineLookup.end()) {
 		res.pipelineID = PipelineManager::createPipelineID();
 		pipelineLookup[res.pipelineID] = res.pipeline;
+
+		fmt::print("Created pipeline ID {}, for Pipeline{}\n", res.pipelineID, (void*)res.pipeline);
+
 		VulkanEngine::Get().mainDeletionQueue.push_pipeline(res.pipeline);
 
-	} else if (pipelineFinder != pipelineLookup.end() && pipelineFinder->second)  {
+	}
+	else if (pipelineFinder != pipelineLookup.end() && pipelineFinder->second) {
 
 		fmt::print("init pipeline resource was called for hot reloading pipeline \n");
 
@@ -902,12 +935,45 @@ void PipelineManager::manage_pipeline(PipelineResource& res, TrackShader trackSh
 
 		queue.push_back(res.pipeline);
 	}
-	
-	auto layoutFinder = layoutLookup.find(res.pipelineLayoutID);
+
+
+	auto layoutFinder = layoutLookup.find(res.pipelineLayout.pipelineLayoutID);
+
 	if (layoutFinder == layoutLookup.end()) {
-		res.pipelineLayoutID = PipelineManager::createLayoutID();
-		layoutLookup[res.pipelineLayoutID] = res.pipelineLayout;
-		VulkanEngine::Get().mainDeletionQueue.push_pipeline_layout(res.pipelineLayout);
+
+		if (res.pipelineLayout.isOwned == LayoutOwnership::Uninitialized) {
+			fmt::print("initialize the pipeline layout");
+			return;
+		}
+
+		if (res.pipelineLayout.isOwned == LayoutOwnership::True) {
+			res.pipelineLayout.pipelineLayoutID = PipelineManager::createLayoutID();
+			layoutLookup[res.pipelineLayout.pipelineLayoutID] = res.pipelineLayout.layout;
+			fmt::print("Created owned pipeline layout ID {}, for Pipeline layout {}\n", (void*)res.pipelineLayout.layout, (void*)res.pipelineLayout.layout);
+
+			VulkanEngine::Get().mainDeletionQueue.push_pipeline_layout(res.pipelineLayout.layout);
+		}
+	}
+
+	if (layoutShared) {
+		auto sharedFinder = layoutLookup.find(layoutShared->pipelineLayoutID);
+
+		if (sharedFinder == layoutLookup.end() && layoutShared->layout != VK_NULL_HANDLE && layoutShared->isShared == SharedLayout::Yes) {
+				layoutShared->pipelineLayoutID = PipelineManager::createLayoutID();
+
+				layoutLookup[layoutShared->pipelineLayoutID] = layoutShared->layout;
+
+				sharedLayouts[layoutShared->pipelineLayoutID] = {};
+				fmt::print("Created shared layout ID {}, handle {}\n", (void*)layoutShared->pipelineLayoutID, (void*)layoutShared->layout);
+
+				sharedLayouts[layoutShared->pipelineLayoutID].push_back(res.pipeline);
+				fmt::print("Added pipeline {} to shared layout ID {}, handle {}\n", (void*)res.pipeline, (void*)layoutShared->pipelineLayoutID, (void*)layoutShared->layout);
+				VulkanEngine::Get().mainDeletionQueue.push_pipeline_layout(layoutShared->layout);
+		}
+		else if (layoutShared->isShared == SharedLayout::Yes && layoutShared->layout != VK_NULL_HANDLE) {
+			sharedLayouts[layoutShared->pipelineLayoutID].push_back(res.pipeline);
+			fmt::print("Added pipeline {} to existing shared layout ID {}, handle {}\n", (void*)res.pipeline, (void*)layoutShared->pipelineLayoutID, (void*)layoutShared->layout);
+		}
 	}
 
 	if (trackShader == TrackShader::Yes) {
@@ -1056,6 +1122,8 @@ void PipelineManager::destroyPipelineCache() {
 	}
 }
 
+
+
 VkPipeline Renderer::rebuild(VkDevice device, PipelineResource& res)  {
 	fmt::print("rebuildPipelines called\n");
 
@@ -1099,7 +1167,7 @@ VkPipeline Renderer::rebuild(VkDevice device, PipelineResource& res)  {
 	pipelineInfo.pMultisampleState = &resConfig->multisampling;
 	pipelineInfo.pColorBlendState = &resConfig->colorBlendingInfo;
 	pipelineInfo.pDepthStencilState = &resConfig->depthStencil;
-	pipelineInfo.layout = res.pipelineLayout;
+	pipelineInfo.layout = res.pipelineLayout.layout;
 	pipelineInfo.pDynamicState = &resConfig->dynamicStateInfo;
 
 	if (resConfig->renderMode == RenderMode::Dynamic) {
@@ -1148,6 +1216,9 @@ void GLTFMetallic_Roughness::build_pipelines(VulkanEngine* engine, Renderer* ren
 
 	opaquePipeline.type = PipelineType::Graphics;
 	transparentPipeline.type = PipelineType::Graphics;
+	
+	opaquePipeline.pipelineLayout.isOwned = LayoutOwnership::False;
+	transparentPipeline.pipelineLayout.isOwned = LayoutOwnership::False;
 
 	opaquePipeline.shader.vertexShader.file = "C:/Users/Alberto/source/repos/GROTESK/GROTESK/res/shaders/mesh.vert";
 	opaquePipeline.shader.fragmentShader.file = "C:/Users/Alberto/source/repos/GROTESK/GROTESK/res/shaders/mesh.frag";
@@ -1171,6 +1242,8 @@ void GLTFMetallic_Roughness::build_pipelines(VulkanEngine* engine, Renderer* ren
 	layoutBuilder.add_binding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
 	layoutBuilder.add_binding(2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
 
+	materialLayout = layoutBuilder.build(engine->device, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
+
 	VkDescriptorSetLayout layouts[] = { renderer->gpuSceneDataDescriptorLayout, materialLayout };
 
 	config->layoutInfo = vkinit::pipeline_layout_create_info();
@@ -1179,9 +1252,12 @@ void GLTFMetallic_Roughness::build_pipelines(VulkanEngine* engine, Renderer* ren
 	config->layoutInfo.pPushConstantRanges = &config->pushConstantRange;
 	config->layoutInfo.pushConstantRangeCount = 1;
 
-	VK_CHECK(vkCreatePipelineLayout(engine->device, &config->layoutInfo, engine->vkAllocator, &opaquePipeline.pipelineLayout));
 
-	transparentPipeline.pipelineLayout = opaquePipeline.pipelineLayout;
+	//i should figure out a way to make shared pipelines as a map for pipelines that may or may not used the same descriptor layout 
+	PipelineLayoutResource sharedLayout;
+	sharedLayout.isShared = SharedLayout::Yes;
+
+	VK_CHECK(vkCreatePipelineLayout(engine->device, &config->layoutInfo, engine->vkAllocator, &sharedLayout.layout));
 
 	PipelineBuilder builder;
 	builder.set_shaders(meshVertShader, meshFragShader);
@@ -1192,19 +1268,45 @@ void GLTFMetallic_Roughness::build_pipelines(VulkanEngine* engine, Renderer* ren
 	builder.disable_blending();
 	builder.enable_depthtest(true, VK_COMPARE_OP_GREATER_OR_EQUAL);
 	builder.set_renderpass(renderer->drawImageRenderPass);
-	builder.res->pipelineLayout = opaquePipeline.pipelineLayout;
+	builder.res->pipelineLayout.layout = sharedLayout.layout;
 
 	opaquePipeline.pipeline = builder.build_pipeline(engine->device, RenderMode::Classic, &opaquePipeline);
 
 	builder.enable_blending_additive();
 	builder.enable_depthtest(false, VK_COMPARE_OP_GREATER_OR_EQUAL);
-
+	builder.res->pipelineLayout.layout = sharedLayout.layout;
 	transparentPipeline.pipeline = builder.build_pipeline(engine->device, RenderMode::Classic, &transparentPipeline);
 
 	vkDestroyShaderModule(engine->device, meshVertShader, nullptr);
 	vkDestroyShaderModule(engine->device, meshFragShader, nullptr);
 
-	renderer->managePipeline.manage_pipeline(opaquePipeline, TrackShader::Yes);
-	renderer->managePipeline.manage_pipeline(transparentPipeline, TrackShader::Yes);
+	renderer->managePipeline.manage_pipeline(opaquePipeline, TrackShader::Yes, &sharedLayout);
+	renderer->managePipeline.manage_pipeline(transparentPipeline, TrackShader::Yes, &sharedLayout);
+
+	engine->mainDeletionQueue.push_descriptor_set_layout(materialLayout);
+}
+
+MaterialInstance GLTFMetallic_Roughness::write_material(VkDevice device, MaterialPass pass, const MaterialResources& resources, DescriptorAllocatorGrowable& descriptorAllocator) {
+
+	MaterialInstance matData;
+	matData.passType = pass;
+
+	if (pass == MaterialPass::Transparent) {
+		matData.pipeline = &transparentPipeline;
+	}
+	else {
+		matData.pipeline = &opaquePipeline;
+	}
+	matData.materialSet = descriptorAllocator.allocate(device, materialLayout);
+
+	writer.clear();
+
+	writer.write_buffer(0, resources.dataBuffer, sizeof(MaterialConstants), resources.dataBufferOffset, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+	writer.write_image(1, resources.colorImage.imageView, resources.colorSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+	writer.write_image(2, resources.metalRoughImage.imageView, resources.metalRoughSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+
+	writer.update_set(device, matData.materialSet);
+
+	return matData;
 }
 

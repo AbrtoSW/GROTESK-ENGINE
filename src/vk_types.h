@@ -44,6 +44,8 @@ struct AllocatedBuffer {
     VkBuffer buffer;
     VmaAllocation allocation;
     VmaAllocationInfo info;
+
+	
 };
 
 struct Vertex {
@@ -88,10 +90,29 @@ enum class RenderMode {
 	Dynamic,
 };
 
+enum struct SharedLayout {
+	Uninitialized,
+	Yes,
+	No
+};
+
+enum struct LayoutOwnership {
+	Uninitialized,
+	False,
+	True
+};
+
 
 using LayoutID = size_t;
 using PipelineID = size_t;
 using ShaderFile = std::string;
+
+struct PipelineLayoutResource {
+	VkPipelineLayout layout;
+	SharedLayout isShared = SharedLayout::No;
+	LayoutOwnership isOwned = LayoutOwnership::True;
+	LayoutID pipelineLayoutID;
+};
 
 struct ShaderInfo {
 	ShaderFile file;
@@ -152,10 +173,10 @@ struct PipelineResource {
 	}
 
 	VkPipeline pipeline;
-	VkPipelineLayout pipelineLayout;
-	Shader shader;
-	LayoutID pipelineLayoutID;
 	PipelineID pipelineID;
+	PipelineLayoutResource pipelineLayout;
+	Shader shader;
+
 	PipelineType type = Uninitialized;
 
 private:
