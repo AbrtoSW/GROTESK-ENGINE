@@ -1,0 +1,163 @@
+﻿  camera.cpp
+C:\Users\Alberto\Desktop\engine_directories\include\fmt\base.h(463,28): error C2338: static_assert failed: 'Unicode support requires compiling with /utf-8'
+  (compiling source file 'src/camera.cpp')
+  
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(43,8): warning C4099: 'DescriptorAllocatorGrowable': type name first seen using 'class' now seen using 'struct'
+  (compiling source file 'src/camera.cpp')
+      C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(43,8):
+      see declaration of 'DescriptorAllocatorGrowable'
+  
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_loader.h(12,8): warning C4099: 'fastgltf::Image': type name first seen using 'struct' now seen using 'class'
+  (compiling source file 'src/camera.cpp')
+      C:\Users\Alberto\Desktop\engine_directories\include\fastgltf\types.hpp(2659,28):
+      see declaration of 'fastgltf::Image'
+  
+  imgui.cpp
+  imgui_demo.cpp
+  imgui_draw.cpp
+  imgui_impl_sdl3.cpp
+  imgui_impl_vulkan.cpp
+  imgui_tables.cpp
+  imgui_widgets.cpp
+  main.cpp
+C:\Users\Alberto\Desktop\engine_directories\include\fmt\base.h(463,28): error C2338: static_assert failed: 'Unicode support requires compiling with /utf-8'
+  (compiling source file 'src/main.cpp')
+  
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(43,8): warning C4099: 'DescriptorAllocatorGrowable': type name first seen using 'class' now seen using 'struct'
+  (compiling source file 'src/main.cpp')
+      C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(43,8):
+      see declaration of 'DescriptorAllocatorGrowable'
+  
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_loader.h(12,8): warning C4099: 'fastgltf::Image': type name first seen using 'struct' now seen using 'class'
+  (compiling source file 'src/main.cpp')
+      C:\Users\Alberto\Desktop\engine_directories\include\fastgltf\types.hpp(2659,28):
+      see declaration of 'fastgltf::Image'
+  
+  vk_ecs.cpp
+C:\Users\Alberto\Desktop\engine_directories\include\fmt\base.h(463,28): error C2338: static_assert failed: 'Unicode support requires compiling with /utf-8'
+  (compiling source file 'src/vk_ecs.cpp')
+  
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(43,8): warning C4099: 'DescriptorAllocatorGrowable': type name first seen using 'class' now seen using 'struct'
+  (compiling source file 'src/vk_ecs.cpp')
+      C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(43,8):
+      see declaration of 'DescriptorAllocatorGrowable'
+  
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_loader.h(12,8): warning C4099: 'fastgltf::Image': type name first seen using 'struct' now seen using 'class'
+  (compiling source file 'src/vk_ecs.cpp')
+      C:\Users\Alberto\Desktop\engine_directories\include\fastgltf\types.hpp(2659,28):
+      see declaration of 'fastgltf::Image'
+  
+  vk_scene.cpp
+C:\Users\Alberto\Desktop\engine_directories\include\fmt\base.h(463,28): error C2338: static_assert failed: 'Unicode support requires compiling with /utf-8'
+  (compiling source file 'src/vk_scene.cpp')
+  
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(43,8): warning C4099: 'DescriptorAllocatorGrowable': type name first seen using 'class' now seen using 'struct'
+  (compiling source file 'src/vk_scene.cpp')
+      C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(43,8):
+      see declaration of 'DescriptorAllocatorGrowable'
+  
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_loader.h(12,8): warning C4099: 'fastgltf::Image': type name first seen using 'struct' now seen using 'class'
+  (compiling source file 'src/vk_scene.cpp')
+      C:\Users\Alberto\Desktop\engine_directories\include\fastgltf\types.hpp(2659,28):
+      see declaration of 'fastgltf::Image'
+  
+  vk_util.cpp
+C:\Users\Alberto\Desktop\engine_directories\include\fmt\base.h(463,28): error C2338: static_assert failed: 'Unicode support requires compiling with /utf-8'
+  (compiling source file 'src/vk_util.cpp')
+  
+  vk_descriptors.cpp
+C:\Users\Alberto\Desktop\engine_directories\include\fmt\base.h(463,28): error C2338: static_assert failed: 'Unicode support requires compiling with /utf-8'
+  (compiling source file 'src/vk_descriptors.cpp')
+  
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(43,8): warning C4099: 'DescriptorAllocatorGrowable': type name first seen using 'class' now seen using 'struct'
+  (compiling source file 'src/vk_descriptors.cpp')
+      C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(43,8):
+      see declaration of 'DescriptorAllocatorGrowable'
+  
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_loader.h(12,8): warning C4099: 'fastgltf::Image': type name first seen using 'struct' now seen using 'class'
+  (compiling source file 'src/vk_descriptors.cpp')
+      C:\Users\Alberto\Desktop\engine_directories\include\fastgltf\types.hpp(2659,28):
+      see declaration of 'fastgltf::Image'
+  
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.cpp(104,29): warning C4244: '=': conversion from 'double' to 'uint32_t', possible loss of data
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.cpp(150,24): warning C4244: '=': conversion from 'double' to 'uint32_t', possible loss of data
+  vk_engine.cpp
+C:\Users\Alberto\Desktop\engine_directories\include\fmt\base.h(463,28): error C2338: static_assert failed: 'Unicode support requires compiling with /utf-8'
+  (compiling source file 'src/vk_engine.cpp')
+  
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(43,8): warning C4099: 'DescriptorAllocatorGrowable': type name first seen using 'class' now seen using 'struct'
+  (compiling source file 'src/vk_engine.cpp')
+      C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(43,8):
+      see declaration of 'DescriptorAllocatorGrowable'
+  
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_loader.h(12,8): warning C4099: 'fastgltf::Image': type name first seen using 'struct' now seen using 'class'
+  (compiling source file 'src/vk_engine.cpp')
+      C:\Users\Alberto\Desktop\engine_directories\include\fastgltf\types.hpp(2659,28):
+      see declaration of 'fastgltf::Image'
+  
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_engine.cpp(208,41): warning C4244: '+=': conversion from 'float' to 'int', possible loss of data
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_engine.cpp(209,41): warning C4244: '-=': conversion from 'float' to 'int', possible loss of data
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_engine.cpp(550,44): warning C4267: '=': conversion from 'size_t' to 'uint32_t', possible loss of data
+  vk_images.cpp
+C:\Users\Alberto\Desktop\engine_directories\include\fmt\base.h(463,28): error C2338: static_assert failed: 'Unicode support requires compiling with /utf-8'
+  (compiling source file 'src/vk_images.cpp')
+  
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(43,8): warning C4099: 'DescriptorAllocatorGrowable': type name first seen using 'class' now seen using 'struct'
+  (compiling source file 'src/vk_images.cpp')
+      C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(43,8):
+      see declaration of 'DescriptorAllocatorGrowable'
+  
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_loader.h(12,8): warning C4099: 'fastgltf::Image': type name first seen using 'struct' now seen using 'class'
+  (compiling source file 'src/vk_images.cpp')
+      C:\Users\Alberto\Desktop\engine_directories\include\fastgltf\types.hpp(2659,28):
+      see declaration of 'fastgltf::Image'
+  
+  vk_initializers.cpp
+  vk_loader.cpp
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_loader.h(12,8): warning C4099: 'fastgltf::Image': type name first seen using 'struct' now seen using 'class'
+  (compiling source file 'src/vk_loader.cpp')
+      C:\Users\Alberto\Desktop\engine_directories\include\fastgltf\types.hpp(2659,28):
+      see declaration of 'fastgltf::Image'
+  
+C:\Users\Alberto\Desktop\engine_directories\include\fmt\base.h(463,28): error C2338: static_assert failed: 'Unicode support requires compiling with /utf-8'
+  (compiling source file 'src/vk_loader.cpp')
+  
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(43,8): warning C4099: 'DescriptorAllocatorGrowable': type name first seen using 'class' now seen using 'struct'
+  (compiling source file 'src/vk_loader.cpp')
+      C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(43,8):
+      see declaration of 'DescriptorAllocatorGrowable'
+  
+  vk_pipelines.cpp
+C:\Users\Alberto\Desktop\engine_directories\include\fmt\base.h(463,28): error C2338: static_assert failed: 'Unicode support requires compiling with /utf-8'
+  (compiling source file 'src/vk_pipelines.cpp')
+  
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(43,8): warning C4099: 'DescriptorAllocatorGrowable': type name first seen using 'class' now seen using 'struct'
+  (compiling source file 'src/vk_pipelines.cpp')
+      C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(43,8):
+      see declaration of 'DescriptorAllocatorGrowable'
+  
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_loader.h(12,8): warning C4099: 'fastgltf::Image': type name first seen using 'struct' now seen using 'class'
+  (compiling source file 'src/vk_pipelines.cpp')
+      C:\Users\Alberto\Desktop\engine_directories\include\fastgltf\types.hpp(2659,28):
+      see declaration of 'fastgltf::Image'
+  
+  vk_renderer.cpp
+C:\Users\Alberto\Desktop\engine_directories\include\fmt\base.h(463,28): error C2338: static_assert failed: 'Unicode support requires compiling with /utf-8'
+  (compiling source file 'src/vk_renderer.cpp')
+  
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(43,8): warning C4099: 'DescriptorAllocatorGrowable': type name first seen using 'class' now seen using 'struct'
+  (compiling source file 'src/vk_renderer.cpp')
+      C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_descriptors.h(43,8):
+      see declaration of 'DescriptorAllocatorGrowable'
+  
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_loader.h(12,8): warning C4099: 'fastgltf::Image': type name first seen using 'struct' now seen using 'class'
+  (compiling source file 'src/vk_renderer.cpp')
+      C:\Users\Alberto\Desktop\engine_directories\include\fastgltf\types.hpp(2659,28):
+      see declaration of 'fastgltf::Image'
+  
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_renderer.cpp(1036,29): warning C4244: '=': conversion from 'uint32_t' to 'float', possible loss of data
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_renderer.cpp(1037,30): warning C4244: '=': conversion from 'uint32_t' to 'float', possible loss of data
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_renderer.cpp(1737,15): warning C4267: 'initializing': conversion from 'size_t' to 'uint32_t', possible loss of data
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_renderer.cpp(1908,5): warning C4065: switch statement contains 'default' but no 'case' labels
+C:\Users\Alberto\source\repos\GROTESK\GROTESK\src\vk_renderer.cpp(2077,63): warning C4065: switch statement contains 'default' but no 'case' labels
+  Generating Code...
