@@ -1,0 +1,44 @@
+# VS local stuff
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build / intermediates
+[Bb]in/
+[Oo]bj/
+x64/
+x86/
+Debug/
+Release/
+ipch/
+*.pch
+
+# VS db
+*.VC.db
+*.VC.VC.opendb
+
+# Vulkan / shader temps
+*.spv.tmp
+*.cache
+
+# Logs / temps
+*.log
+*.tlog
+*.tmp
+
+# Binaries
+*.exe
+*.dll
+*.lib
+*.pdb
+*.ilk
+
+# VSCode
+.vscode/
+
+# Editor / engine local stuff
+*.opendb
+*.local
+*.vsconfig
