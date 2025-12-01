@@ -1,0 +1,50 @@
+#version 450
+#extension GL_EXT_scalar_block_layout : require
+
+// Storage image: heightmap array, R16F (normalized [0..1])
+layout(set=0, binding=0, r16f) uniform image2DArray uHeightmap;
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+// keep in sync with PC_Brush in C++
+layout(push_constant, scalar) uniform PC_Brush {
+    uint layer;
+    int  x0;
+    int  y0;
+    float cx;
+    float cy;
+    float rTex;
+    float strength;   // normalized [0..1]
+    int   mode;       // 0 = add/lower
+} pc;
+
+void main()
+{
+    ivec2 p = ivec2(int(gl_GlobalInvocationID.x) + pc.x0,
+                    int(gl_GlobalInvocationID.y) + pc.y0);
+
+    // bounds guard
+    ivec3 sz = imageSize(uHeightmap);
+    if (p.x < 0 || p.y < 0 || p.x >= sz.x || p.y >= sz.y) return;
+
+    float dx = float(p.x) - pc.cx;
+    float dy = float(p.y) - pc.cy;
+    float r2 = pc.rTex * pc.rTex;
+    float d2 = dx*dx + dy*dy;
+    if (d2 > r2) return;
+
+    // radial falloff
+    float w = 1.0 - (d2 / r2);
+    w = clamp(w, 0.0, 1.0);
+
+    // read-modify-write
+    vec4 h4 = imageLoad(uHeightmap, ivec3(p, int(pc.layer)));
+    float h = h4.x;
+
+    if (pc.mode == 0) {
+        // normalized delta + clamp to [0,1]
+        h = clamp(h + pc.strength * w, 0.0, 1.0);
+    }
+
+    imageStore(uHeightmap, ivec3(p, int(pc.layer)), vec4(h, 0.0, 0.0, 1.0));
+}
